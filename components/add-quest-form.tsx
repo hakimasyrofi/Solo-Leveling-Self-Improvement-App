@@ -234,7 +234,7 @@ export function AddQuestForm() {
             <Plus className="mr-2 h-4 w-4" /> Create Custom Quest
           </Button>
         </DialogTrigger>
-        <DialogContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff] max-w-md">
+        <DialogContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff] max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-[#4cc9ff]">Create New Quest</DialogTitle>
             <DialogDescription className="text-[#8bacc1]">

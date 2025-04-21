@@ -372,7 +372,7 @@ export default function CombatPage() {
         </header>
 
         {/* Main Combat Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className={`grid grid-cols-1 ${inCombat ? "lg:grid-cols-3" : "lg:grid-cols-2"} gap-6`}>
           {/* Left Column - Player Stats */}
           <div className="lg:col-span-1">
             <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative h-full">
@@ -562,10 +562,12 @@ export default function CombatPage() {
             )}
           </div>
 
-          {/* Right Column - Combat Log */}
-          <div className="lg:col-span-1">
-            <CombatLog messages={combatLog} />
-          </div>
+          {/* Right Column - Combat Log (only shown during combat) */}
+          {inCombat && (
+            <div className="lg:col-span-1">
+              <CombatLog messages={combatLog} />
+            </div>
+          )}
         </div>
 
         {/* Combat Actions */}

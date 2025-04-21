@@ -52,42 +52,44 @@ export default function Dashboard() {
                 Profile
               </Link>
             </div>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="bg-[#0a0e14] border-[#1e2a3a]">
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-xl font-bold text-[#4cc9ff]">Menu</h2>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <X className="h-5 w-5" />
-                      <span className="sr-only">Close menu</span>
-                    </Button>
-                  </SheetTrigger>
-                </div>
-                <nav className="flex flex-col gap-4">
-                  <Link href="/quests" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
-                    Quests
-                  </Link>
-                  <Link href="/inventory" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
-                    Inventory
-                  </Link>
-                  <Link href="/equipment" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
-                    Equipment
-                  </Link>
-                  <Link href="/combat" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
-                    Combat
-                  </Link>
-                  <Link href="/skills" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
-                    Skills
-                  </Link>
-                </nav>
-              </SheetContent>
-            </Sheet>
+            <div className="hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="bg-[#0a0e14] border-[#1e2a3a]">
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-xl font-bold text-[#4cc9ff]">Menu</h2>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <X className="h-5 w-5" />
+                        <span className="sr-only">Close menu</span>
+                      </Button>
+                    </SheetTrigger>
+                  </div>
+                  <nav className="flex flex-col gap-4">
+                    <Link href="/quests" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
+                      Quests
+                    </Link>
+                    <Link href="/inventory" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
+                      Inventory
+                    </Link>
+                    <Link href="/equipment" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
+                      Equipment
+                    </Link>
+                    <Link href="/combat" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
+                      Combat
+                    </Link>
+                    <Link href="/skills" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
+                      Skills
+                    </Link>
+                  </nav>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </header>
 

@@ -41,6 +41,10 @@ export default function QuestsPage() {
         quest.description.toLowerCase().includes(searchTerm.toLowerCase())),
   )
 
+  const handleDeleteQuest = (questId: string) => {
+    deleteQuest(questId)
+  }
+
   return (
     <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff] pb-16 md:pb-0">
       <div className="container mx-auto px-4 py-6">
@@ -98,7 +102,7 @@ export default function QuestsPage() {
                     quest={quest}
                     onComplete={() => completeQuest(quest.id)}
                     onProgress={(progress) => updateQuestProgress(quest.id, progress)}
-                    onDelete={() => deleteQuest(quest.id)}
+                    onDelete={() => handleDeleteQuest(quest.id)}
                   />
                 ))
               ) : (
@@ -117,7 +121,7 @@ export default function QuestsPage() {
             <div className="grid grid-cols-1 gap-4">
               {completedQuests.length > 0 ? (
                 completedQuests.map((quest) => (
-                  <QuestCard key={quest.id} quest={quest} onDelete={() => deleteQuest(quest.id)} />
+                  <QuestCard key={quest.id} quest={quest} onDelete={() => handleDeleteQuest(quest.id)} />
                 ))
               ) : (
                 <div className="text-center py-8 text-[#8bacc1]">
@@ -244,8 +248,8 @@ function QuestCard({
           )}
         </div>
 
-        {/* Always show delete button for custom quests */}
-        {quest.isCustom && onDelete && (
+        {/* Delete button for all quests */}
+        {onDelete && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="bg-red-900 hover:bg-red-800">

@@ -151,8 +151,9 @@ const generateQuestWithGemini = async (description: string): Promise<AIQuestData
   }
 
   try {
+    // Updated to use the newer Gemini 2.0 Flash model
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: {

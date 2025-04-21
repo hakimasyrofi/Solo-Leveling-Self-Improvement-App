@@ -350,7 +350,7 @@ export default function CombatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff]">
+    <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff] pb-16 md:pb-0">
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <header className="flex items-center justify-between mb-8">

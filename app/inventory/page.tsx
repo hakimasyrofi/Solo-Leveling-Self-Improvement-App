@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import Link from "next/link"
 import { ChevronLeft, Search, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,7 @@ export default function InventoryPage() {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null)
   const [itemDetailsOpen, setItemDetailsOpen] = useState(false)
   const [itemToUse, setItemToUse] = useState<InventoryItem | null>(null)
+  const itemToUseRef = useRef<InventoryItem | null>(null)
 
   // Filter items based on search term and type
   const filterItems = (items: InventoryItem[], type?: string) => {
@@ -45,12 +46,12 @@ export default function InventoryPage() {
 
   // Handle item use
   const handleUseItem = useCallback(() => {
-    if (itemToUse) {
-      useItem(itemToUse.id)
+    if (itemToUseRef.current) {
+      useItem(itemToUseRef.current.id)
       setItemDetailsOpen(false)
-      setItemToUse(null)
+      itemToUseRef.current = null
     }
-  }, [useItem, itemToUse])
+  }, [useItem])
 
   // Get rarity color
   const getRarityColor = (rarity: string) => {
@@ -93,7 +94,7 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff]">
+    <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff] pb-16 md:pb-0">
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <header className="flex items-center justify-between mb-8">
@@ -350,7 +351,7 @@ export default function InventoryPage() {
                   <Button
                     className="bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
                     onClick={() => {
-                      setItemToUse(selectedItem)
+                      itemToUseRef.current = selectedItem
                       handleUseItem()
                     }}
                   >

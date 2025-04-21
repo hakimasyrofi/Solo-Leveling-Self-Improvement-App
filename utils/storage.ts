@@ -3,6 +3,7 @@ import type { InventoryItem } from "@/data/enemies"
 
 // Define the user data structure
 export interface UserStats {
+  name: string // Add this line
   level: number
   exp: number
   expToNextLevel: number
@@ -65,6 +66,7 @@ export interface Quest {
 
 // Add some sample quests to the initial user stats
 export const initialUserStats: UserStats = {
+  name: "", // Add this line with empty string as default
   level: 1,
   exp: 0,
   expToNextLevel: 100, // Level 1 needs 100 XP to reach level 2

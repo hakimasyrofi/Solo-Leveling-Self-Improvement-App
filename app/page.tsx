@@ -9,6 +9,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useUser } from "@/context/user-context"
+// Import the NameInputModal component
+import { MobileNav } from "@/components/mobile-nav"
+import { NameInputModal } from "@/components/name-input-modal"
 
 export default function Dashboard() {
   const { userStats, addExp, completeQuest } = useUser()
@@ -17,7 +20,10 @@ export default function Dashboard() {
   const expPercentage = (userStats.exp / userStats.expToNextLevel) * 100
 
   return (
-    <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff]">
+    <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff] pb-16 md:pb-0">
+      {/* Add the NameInputModal component */}
+      <NameInputModal />
+
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <header className="flex items-center justify-between mb-8">
@@ -106,7 +112,14 @@ export default function Dashboard() {
               <div className="text-center">
                 <div className="text-7xl font-bold text-[#4cc9ff] mb-1">{userStats.level}</div>
                 <div className="text-sm uppercase tracking-wider text-[#8bacc1]">LEVEL</div>
+
+                {/* Add name display above job */}
                 <div className="mt-4">
+                  <div className="text-xs text-[#8bacc1]">NAME:</div>
+                  <div className="text-sm font-medium">{userStats.name || "Unnamed"}</div>
+                </div>
+
+                <div className="mt-2">
                   <div className="text-xs text-[#8bacc1]">JOB:</div>
                   <div className="text-sm">{userStats.job || "None"}</div>
                 </div>
@@ -204,13 +217,13 @@ export default function Dashboard() {
                     name="PER"
                     value={userStats.stats.per}
                   />
-                  <div className="flex items-center">
+                  <div className="flex flex-col sm:flex-row sm:items-center">
                     <div>
                       <div className="text-xs text-[#8bacc1] mb-1">Available Points</div>
                       <div className="text-3xl font-bold text-[#4cc9ff]">{userStats.statPoints}</div>
                     </div>
-                    <Link href="/stats">
-                      <Button className="ml-4 bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]">
+                    <Link href="/stats" className="mt-2 sm:mt-0 sm:ml-4">
+                      <Button className="w-full sm:w-auto bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]">
                         Allocate
                       </Button>
                     </Link>
@@ -309,6 +322,9 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Add the mobile navigation bar */}
+      <MobileNav />
     </div>
   )
 }

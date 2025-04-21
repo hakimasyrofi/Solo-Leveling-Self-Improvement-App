@@ -13,7 +13,7 @@ export default function StatsPage() {
   const { userStats, allocateStatPoint, deallocateStatPoint } = useUser()
 
   return (
-    <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff]">
+    <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff] pb-16 md:pb-0">
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <header className="flex items-center mb-8">
@@ -236,6 +236,7 @@ export default function StatsPage() {
   )
 }
 
+// Update the StatAllocationRow component to make it more responsive
 function StatAllocationRow({
   icon,
   name,
@@ -258,10 +259,10 @@ function StatAllocationRow({
   canDecrease: boolean
 }) {
   return (
-    <div className="flex items-center">
-      <div className="flex items-center w-1/2">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0 mb-4 sm:mb-0">
+      <div className="flex items-center w-full sm:w-1/2">
         <div className="flex items-center justify-center mr-3">{icon}</div>
-        <div>
+        <div className="flex-1">
           <div className="flex items-center">
             <div className="text-sm font-medium">{displayName}</div>
             <TooltipProvider>
@@ -286,11 +287,11 @@ function StatAllocationRow({
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-end w-1/2">
+      <div className="flex items-center justify-between sm:justify-end w-full sm:w-1/2 mt-2 sm:mt-0">
         <Button
           variant="outline"
           size="icon"
-          className="h-7 w-7 rounded-full border-[#1e2a3a] hover:bg-[#1e2a3a] mr-3"
+          className="h-7 w-7 rounded-full border-[#1e2a3a] hover:bg-[#1e2a3a]"
           onClick={onDecrease}
           disabled={!canDecrease}
         >
@@ -301,7 +302,7 @@ function StatAllocationRow({
         <Button
           variant="outline"
           size="icon"
-          className="h-7 w-7 rounded-full border-[#1e2a3a] hover:bg-[#1e2a3a] ml-3"
+          className="h-7 w-7 rounded-full border-[#1e2a3a] hover:bg-[#1e2a3a]"
           onClick={onIncrease}
           disabled={!canIncrease}
         >

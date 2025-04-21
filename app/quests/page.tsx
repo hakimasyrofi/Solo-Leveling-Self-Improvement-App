@@ -42,7 +42,7 @@ export default function QuestsPage() {
   )
 
   return (
-    <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff]">
+    <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff] pb-16 md:pb-0">
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <header className="flex items-center mb-8">
@@ -98,7 +98,7 @@ export default function QuestsPage() {
                     quest={quest}
                     onComplete={() => completeQuest(quest.id)}
                     onProgress={(progress) => updateQuestProgress(quest.id, progress)}
-                    onDelete={quest.isCustom ? () => deleteQuest(quest.id) : undefined}
+                    onDelete={() => deleteQuest(quest.id)}
                   />
                 ))
               ) : (
@@ -117,11 +117,7 @@ export default function QuestsPage() {
             <div className="grid grid-cols-1 gap-4">
               {completedQuests.length > 0 ? (
                 completedQuests.map((quest) => (
-                  <QuestCard
-                    key={quest.id}
-                    quest={quest}
-                    onDelete={quest.isCustom ? () => deleteQuest(quest.id) : undefined}
-                  />
+                  <QuestCard key={quest.id} quest={quest} onDelete={() => deleteQuest(quest.id)} />
                 ))
               ) : (
                 <div className="text-center py-8 text-[#8bacc1]">
@@ -195,36 +191,6 @@ function QuestCard({
             <CardDescription>{quest.description}</CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            {onDelete && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff]">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-[#4cc9ff]">Delete Quest</AlertDialogTitle>
-                    <AlertDialogDescription className="text-[#8bacc1]">
-                      Are you sure you want to delete this quest? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="bg-[#1e2a3a] text-[#e0f2ff] hover:bg-[#2a3a4a]">
-                      Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction className="bg-red-900 text-[#e0f2ff] hover:bg-red-800" onClick={onDelete}>
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
             <div
               className={`${difficultyColors[quest.difficulty]} w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold`}
             >
@@ -261,19 +227,46 @@ function QuestCard({
           </div>
         </div>
       </CardContent>
-      <CardFooter className="relative z-10">
-        {!quest.completed && (
-          <Button
-            className="w-full bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
-            onClick={handleButtonClick}
-          >
-            {quest.progress === 0 ? "Start Quest" : quest.progress === 100 ? "Claim Reward" : "Update Progress"}
-          </Button>
-        )}
-        {quest.completed && (
-          <Button className="w-full bg-[#1e2a3a] hover:bg-[#2a3a4a]" disabled>
-            Completed
-          </Button>
+      <CardFooter className="relative z-10 flex flex-col sm:flex-row gap-2">
+        <div className="flex-1">
+          {!quest.completed && (
+            <Button
+              className="w-full bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
+              onClick={handleButtonClick}
+            >
+              {quest.progress === 0 ? "Start Quest" : quest.progress === 100 ? "Claim Reward" : "Update Progress"}
+            </Button>
+          )}
+          {quest.completed && (
+            <Button className="w-full bg-[#1e2a3a] hover:bg-[#2a3a4a]" disabled>
+              Completed
+            </Button>
+          )}
+        </div>
+
+        {/* Always show delete button for custom quests */}
+        {quest.isCustom && onDelete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="bg-red-900 hover:bg-red-800">
+                <Trash2 className="h-4 w-4 mr-2" /> Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff]">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-[#4cc9ff]">Delete Quest</AlertDialogTitle>
+                <AlertDialogDescription className="text-[#8bacc1]">
+                  Are you sure you want to delete this quest? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="bg-[#1e2a3a] text-[#e0f2ff] hover:bg-[#2a3a4a]">Cancel</AlertDialogCancel>
+                <AlertDialogAction className="bg-red-900 text-[#e0f2ff] hover:bg-red-800" onClick={onDelete}>
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
       </CardFooter>
     </Card>

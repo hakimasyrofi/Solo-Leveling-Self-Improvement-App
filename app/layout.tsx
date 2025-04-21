@@ -2,6 +2,7 @@ import type React from "react"
 import "@/app/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { UserProvider } from "@/context/user-context"
+import { MobileNav } from "@/components/mobile-nav"
 
 export default function RootLayout({
   children,
@@ -16,7 +17,10 @@ export default function RootLayout({
       </head>
       <body className="bg-[#0a0e14]">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
-          <UserProvider>{children}</UserProvider>
+          <UserProvider>
+            {children}
+            <MobileNav />
+          </UserProvider>
         </ThemeProvider>
       </body>
     </html>

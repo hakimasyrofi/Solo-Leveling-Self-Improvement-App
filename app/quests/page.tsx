@@ -1,0 +1,281 @@
+"use client"
+
+import Link from "next/link"
+import { ChevronLeft, Search, Trash2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Progress } from "@/components/ui/progress"
+import { useUser } from "@/context/user-context"
+import { useState } from "react"
+import { AddQuestForm } from "@/components/add-quest-form"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
+export default function QuestsPage() {
+  const { userStats, completeQuest, updateQuestProgress, deleteQuest } = useUser()
+  const [searchTerm, setSearchTerm] = useState("")
+
+  // Filter quests based on search term and status
+  const activeQuests = userStats.quests.filter(
+    (quest) =>
+      !quest.completed &&
+      (quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        quest.description.toLowerCase().includes(searchTerm.toLowerCase())),
+  )
+
+  const completedQuests = userStats.quests.filter(
+    (quest) =>
+      quest.completed &&
+      (quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        quest.description.toLowerCase().includes(searchTerm.toLowerCase())),
+  )
+
+  return (
+    <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff]">
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <header className="flex items-center mb-8">
+          <Link href="/" className="mr-4">
+            <Button variant="ghost" size="icon" className="hover:bg-[#1e2a3a]">
+              <ChevronLeft className="h-5 w-5" />
+              <span className="sr-only">Back</span>
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold tracking-tight text-[#4cc9ff]">Quests</h1>
+        </header>
+
+        {/* Search and Filter */}
+        <div className="mb-6 relative">
+          <div className="absolute inset-0 border border-[#4cc9ff]/30 rounded-lg shadow-[0_0_15px_rgba(76,201,255,0.15)]"></div>
+          <div className="p-4 relative z-10">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8bacc1]" />
+              <Input
+                placeholder="Search quests..."
+                className="pl-9 bg-[#0a0e14] border-[#1e2a3a] focus-visible:ring-[#4cc9ff]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Quests Tabs */}
+        <Tabs defaultValue="active">
+          <TabsList className="grid w-full grid-cols-2 bg-[#1e2a3a] border border-[#1e2a3a]">
+            <TabsTrigger
+              value="active"
+              className="data-[state=active]:bg-[#0a0e14] data-[state=active]:border-t-2 data-[state=active]:border-[#4cc9ff]"
+            >
+              Active
+            </TabsTrigger>
+            <TabsTrigger
+              value="completed"
+              className="data-[state=active]:bg-[#0a0e14] data-[state=active]:border-t-2 data-[state=active]:border-[#4cc9ff]"
+            >
+              Completed
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Active Quests */}
+          <TabsContent value="active" className="mt-6">
+            <div className="grid grid-cols-1 gap-4">
+              {activeQuests.length > 0 ? (
+                activeQuests.map((quest) => (
+                  <QuestCard
+                    key={quest.id}
+                    quest={quest}
+                    onComplete={() => completeQuest(quest.id)}
+                    onProgress={(progress) => updateQuestProgress(quest.id, progress)}
+                    onDelete={quest.isCustom ? () => deleteQuest(quest.id) : undefined}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-8 text-[#8bacc1]">
+                  {searchTerm ? "No active quests match your search." : "No active quests available."}
+                </div>
+              )}
+            </div>
+            <div className="mt-6 flex justify-center">
+              <AddQuestForm />
+            </div>
+          </TabsContent>
+
+          {/* Completed Quests */}
+          <TabsContent value="completed" className="mt-6">
+            <div className="grid grid-cols-1 gap-4">
+              {completedQuests.length > 0 ? (
+                completedQuests.map((quest) => (
+                  <QuestCard
+                    key={quest.id}
+                    quest={quest}
+                    onDelete={quest.isCustom ? () => deleteQuest(quest.id) : undefined}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-8 text-[#8bacc1]">
+                  {searchTerm ? "No completed quests match your search." : "No completed quests yet."}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  )
+}
+
+function QuestCard({
+  quest,
+  onComplete,
+  onProgress,
+  onDelete,
+}: {
+  quest: {
+    id: string
+    title: string
+    description: string
+    reward: string
+    progress: number
+    difficulty: "S" | "A" | "B" | "C" | "D" | "E"
+    expiry: string
+    expReward: number
+    statPointsReward: number
+    completed?: boolean
+    isCustom?: boolean
+  }
+  onComplete?: () => void
+  onProgress?: (progress: number) => void
+  onDelete?: () => void
+}) {
+  const difficultyColors = {
+    S: "bg-red-500",
+    A: "bg-orange-500",
+    B: "bg-yellow-500",
+    C: "bg-green-500",
+    D: "bg-blue-500",
+    E: "bg-purple-500",
+  }
+
+  const handleButtonClick = () => {
+    if (quest.completed) return
+
+    if (quest.progress === 100 && onComplete) {
+      onComplete()
+    } else if (quest.progress < 100 && onProgress) {
+      // Increment progress by 25% each time
+      const newProgress = Math.min(100, quest.progress + 25)
+      onProgress(newProgress)
+    }
+  }
+
+  return (
+    <Card className={`bg-[#0a0e14]/80 border-[#1e2a3a] relative ${quest.completed ? "opacity-70" : ""}`}>
+      <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
+      <CardHeader className="pb-2 relative z-10">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="flex items-center">
+              <CardTitle className="text-base">{quest.title}</CardTitle>
+              {quest.isCustom && (
+                <span className="ml-2 text-xs bg-[#1e2a3a] text-[#8bacc1] px-2 py-0.5 rounded-full">Custom</span>
+              )}
+            </div>
+            <CardDescription>{quest.description}</CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            {onDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff]">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-[#4cc9ff]">Delete Quest</AlertDialogTitle>
+                    <AlertDialogDescription className="text-[#8bacc1]">
+                      Are you sure you want to delete this quest? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="bg-[#1e2a3a] text-[#e0f2ff] hover:bg-[#2a3a4a]">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction className="bg-red-900 text-[#e0f2ff] hover:bg-red-800" onClick={onDelete}>
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            <div
+              className={`${difficultyColors[quest.difficulty]} w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold`}
+            >
+              {quest.difficulty}
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="relative z-10">
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs">
+            <span>Progress</span>
+            <span>{quest.progress}%</span>
+          </div>
+          <Progress value={quest.progress} className="h-2 bg-[#1e2a3a]">
+            <div className="h-full bg-gradient-to-r from-[#4cc9ff] to-[#4cc9ff]/60 rounded-full" />
+          </Progress>
+          <div className="flex justify-between text-xs mt-2">
+            <div>
+              <span className="text-[#8bacc1]">Reward: </span>
+              <span className="text-[#4cc9ff]">{quest.reward}</span>
+            </div>
+            <div className="text-[#8bacc1]">{quest.expiry}</div>
+          </div>
+          <div className="flex justify-between text-xs">
+            <div>
+              <span className="text-[#8bacc1]">EXP: </span>
+              <span className="text-[#4cc9ff]">{quest.expReward}</span>
+            </div>
+            <div>
+              <span className="text-[#8bacc1]">Stat Points: </span>
+              <span className="text-[#4cc9ff]">{quest.statPointsReward}</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter className="relative z-10">
+        {!quest.completed && (
+          <Button
+            className="w-full bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
+            onClick={handleButtonClick}
+          >
+            {quest.progress === 0 ? "Start Quest" : quest.progress === 100 ? "Claim Reward" : "Update Progress"}
+          </Button>
+        )}
+        {quest.completed && (
+          <Button className="w-full bg-[#1e2a3a] hover:bg-[#2a3a4a]" disabled>
+            Completed
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
+  )
+}

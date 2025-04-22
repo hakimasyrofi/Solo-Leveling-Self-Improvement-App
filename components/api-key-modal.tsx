@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { storeAPIKey } from "@/utils/ai-service"
+import { storeAPIKey, getAPIKey } from "@/utils/ai-service"
 
 interface APIKeyModalProps {
   open: boolean
@@ -28,6 +28,18 @@ export function APIKeyModal({ open, onOpenChange, onKeySubmit }: APIKeyModalProp
   const [provider, setProvider] = useState<"openai" | "gemini">("openai")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Check if API key already exists when modal opens
+  useEffect(() => {
+    if (open) {
+      const existingKey = getAPIKey()
+      if (existingKey) {
+        // If key exists, auto-submit and close modal
+        onKeySubmit(provider)
+        onOpenChange(false)
+      }
+    }
+  }, [open, provider, onKeySubmit, onOpenChange])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

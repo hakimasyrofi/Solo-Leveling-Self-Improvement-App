@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { ChevronLeft, Sword, Shield, Zap, Heart, Brain, Eye } from "lucide-react"
@@ -22,6 +24,7 @@ import { enemies, type Enemy } from "@/data/enemies"
 import { CombatLog } from "@/components/combat-log"
 import { CombatActions } from "@/components/combat-actions"
 import { EnemySelection } from "@/components/enemy-selection"
+import { CombatVisualization } from "@/components/combat-visualization"
 
 export default function CombatPage() {
   const { userStats, setUserStats, addExp, addItem, addGold } = useUser()
@@ -44,6 +47,10 @@ export default function CombatPage() {
   }>({ exp: 0, gold: 0, items: [] })
   const [isDefending, setIsDefending] = useState(false)
   const [skillCooldowns, setSkillCooldowns] = useState<Record<string, number>>({})
+
+  // Animation states
+  const [isAttacking, setIsAttacking] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
 
   // Reset combat state when component unmounts
   useEffect(() => {
@@ -94,44 +101,70 @@ export default function CombatPage() {
 
   // Player attacks enemy
   const playerAttack = () => {
-    if (!selectedEnemy || !inCombat || !playerTurn) return
+    if (!selectedEnemy || !inCombat || !playerTurn || isAnimating) return
 
-    const isCritical = checkCritical(userStats.stats.agi)
-    const damage = calculateDamage(userStats.stats.str, selectedEnemy.stats.vit, isCritical)
+    setIsAnimating(true)
+    setIsAttacking(true)
+  }
 
-    const newEnemyHp = Math.max(0, enemyHp - damage)
-    setEnemyHp(newEnemyHp)
+  // Handle animation completion
+  const handleAnimationComplete = () => {
+    setIsAnimating(false)
+    setIsAttacking(false)
 
-    const logMessage = isCritical
-      ? `You land a critical hit on ${selectedEnemy.name} for ${damage} damage!`
-      : `You attack ${selectedEnemy.name} for ${damage} damage.`
+    if (!selectedEnemy || !inCombat) return
 
-    addToCombatLog(logMessage)
+    if (playerTurn) {
+      // Player attack logic after animation
+      const isCritical = checkCritical(userStats.stats.agi)
+      const damage = calculateDamage(userStats.stats.str, selectedEnemy.stats.vit, isCritical)
 
-    if (newEnemyHp <= 0) {
-      endCombat(true)
+      const newEnemyHp = Math.max(0, enemyHp - damage)
+      setEnemyHp(newEnemyHp)
+
+      const logMessage = isCritical
+        ? `You land a critical hit on ${selectedEnemy.name} for ${damage} damage!`
+        : `You attack ${selectedEnemy.name} for ${damage} damage.`
+
+      addToCombatLog(logMessage)
+
+      if (newEnemyHp <= 0) {
+        endCombat(true)
+      } else {
+        setPlayerTurn(false)
+        // Enemy's turn after a short delay
+        setTimeout(() => enemyTurn(), 1000)
+      }
     } else {
-      setPlayerTurn(false)
-      // Enemy's turn after a short delay
-      setTimeout(() => enemyTurn(), 1000)
+      // Enemy attack logic after animation
+      if (isDefending) {
+        setIsDefending(false)
+      }
+
+      setPlayerTurn(true)
     }
   }
 
   // Player defends to reduce incoming damage
   const playerDefend = () => {
-    if (!inCombat || !playerTurn) return
+    if (!inCombat || !playerTurn || isAnimating) return
 
+    setIsAnimating(true)
     setIsDefending(true)
+
     addToCombatLog("You take a defensive stance, reducing incoming damage by 50%.")
 
-    setPlayerTurn(false)
-    // Enemy's turn after a short delay
-    setTimeout(() => enemyTurn(), 1000)
+    setTimeout(() => {
+      setIsAnimating(false)
+      setPlayerTurn(false)
+      // Enemy's turn after a short delay
+      setTimeout(() => enemyTurn(), 500)
+    }, 1000)
   }
 
   // Player uses a skill
   const playerUseSkill = (skillName: string, mpCost: number, cooldown: number) => {
-    if (!selectedEnemy || !inCombat || !playerTurn) return
+    if (!selectedEnemy || !inCombat || !playerTurn || isAnimating) return
 
     if (playerMp < mpCost) {
       toast({
@@ -159,6 +192,9 @@ export default function CombatPage() {
       ...prev,
       [skillName]: cooldown,
     }))
+
+    setIsAnimating(true)
+    setIsAttacking(true)
 
     let damage = 0
     let logMessage = ""
@@ -192,19 +228,23 @@ export default function CombatPage() {
 
     addToCombatLog(logMessage)
 
-    if (damage > 0) {
-      const newEnemyHp = Math.max(0, enemyHp - damage)
-      setEnemyHp(newEnemyHp)
+    setTimeout(() => {
+      setIsAnimating(false)
 
-      if (newEnemyHp <= 0) {
-        endCombat(true)
-        return
+      if (damage > 0) {
+        const newEnemyHp = Math.max(0, enemyHp - damage)
+        setEnemyHp(newEnemyHp)
+
+        if (newEnemyHp <= 0) {
+          endCombat(true)
+          return
+        }
       }
-    }
 
-    setPlayerTurn(false)
-    // Enemy's turn after a short delay
-    setTimeout(() => enemyTurn(), 1000)
+      setPlayerTurn(false)
+      // Enemy's turn after a short delay
+      setTimeout(() => enemyTurn(), 500)
+    }, 1000)
   }
 
   // Player uses an item
@@ -229,29 +269,33 @@ export default function CombatPage() {
       return newCooldowns
     })
 
+    setIsAnimating(true)
+    setIsAttacking(true)
+
     // Enemy decides what to do (for now, just basic attack)
     const damage = calculateDamage(selectedEnemy.stats.str, userStats.stats.vit)
 
     // Apply defense reduction if player is defending
     const actualDamage = isDefending ? Math.floor(damage * 0.5) : damage
 
-    const newPlayerHp = Math.max(0, playerHp - actualDamage)
-    setPlayerHp(newPlayerHp)
+    setTimeout(() => {
+      const newPlayerHp = Math.max(0, playerHp - actualDamage)
+      setPlayerHp(newPlayerHp)
 
-    const logMessage = isDefending
-      ? `${selectedEnemy.name} attacks you for ${actualDamage} damage (reduced by defense).`
-      : `${selectedEnemy.name} attacks you for ${actualDamage} damage.`
+      const logMessage = isDefending
+        ? `${selectedEnemy.name} attacks you for ${actualDamage} damage (reduced by defense).`
+        : `${selectedEnemy.name} attacks you for ${actualDamage} damage.`
 
-    addToCombatLog(logMessage)
+      addToCombatLog(logMessage)
 
-    // Reset defending status
-    setIsDefending(false)
-
-    if (newPlayerHp <= 0) {
-      endCombat(false)
-    } else {
-      setPlayerTurn(true)
-    }
+      if (newPlayerHp <= 0) {
+        setIsAnimating(false)
+        endCombat(false)
+      } else {
+        // Animation will handle setting playerTurn to true
+        handleAnimationComplete()
+      }
+    }, 1000)
   }
 
   // Add message to combat log
@@ -291,6 +335,8 @@ export default function CombatPage() {
     }
 
     setInCombat(false)
+    setIsAnimating(false)
+    setIsAttacking(false)
   }
 
   // Claim rewards after victory
@@ -333,7 +379,7 @@ export default function CombatPage() {
 
   // Flee from combat
   const fleeCombat = () => {
-    if (!inCombat || !selectedEnemy) return
+    if (!inCombat || !selectedEnemy || isAnimating) return
 
     // 50% chance to successfully flee based on agility difference
     const fleeChance = 50 + (userStats.stats.agi - selectedEnemy.stats.agi) * 2
@@ -476,89 +522,100 @@ export default function CombatPage() {
             {!selectedEnemy && !inCombat ? (
               <EnemySelection enemies={enemies} onSelectEnemy={startCombat} />
             ) : (
-              <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative">
-                <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
-                {selectedEnemy && (
-                  <>
-                    <CardHeader className="pb-2 relative z-10">
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-[#4cc9ff]">{selectedEnemy.name}</CardTitle>
-                        <Badge className="bg-[#1e2a3a]">Level {selectedEnemy.level}</Badge>
-                      </div>
-                      <CardDescription>{selectedEnemy.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="relative z-10">
-                      {/* Enemy HP Bar */}
-                      <div className="mb-4">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="flex items-center">
-                            <Heart className="h-3 w-3 text-red-400 mr-1" />
-                            <span>HP</span>
-                          </span>
-                          <span>
-                            {enemyHp}/{enemyMaxHp}
-                          </span>
+              <>
+                <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative mb-4">
+                  <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
+                  {selectedEnemy && (
+                    <>
+                      <CardHeader className="pb-2 relative z-10">
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-[#4cc9ff]">{selectedEnemy.name}</CardTitle>
+                          <Badge className="bg-[#1e2a3a]">Level {selectedEnemy.level}</Badge>
                         </div>
-                        <Progress value={(enemyHp / enemyMaxHp) * 100} className="h-2 bg-[#1e2a3a]">
-                          <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
-                        </Progress>
-                      </div>
+                        <CardDescription>{selectedEnemy.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="relative z-10">
+                        {/* Enemy HP Bar */}
+                        <div className="mb-4">
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="flex items-center">
+                              <Heart className="h-3 w-3 text-red-400 mr-1" />
+                              <span>HP</span>
+                            </span>
+                            <span>
+                              {enemyHp}/{enemyMaxHp}
+                            </span>
+                          </div>
+                          <Progress value={(enemyHp / enemyMaxHp) * 100} className="h-2 bg-[#1e2a3a]">
+                            <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
+                          </Progress>
+                        </div>
 
-                      {/* Enemy Stats */}
-                      <div className="grid grid-cols-3 gap-2 text-xs mb-4">
-                        <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
-                          <Sword className="h-3 w-3 text-[#4cc9ff] mb-1" />
-                          <span className="text-[#8bacc1]">STR</span>
-                          <span>{selectedEnemy.stats.str}</span>
+                        {/* Enemy Stats */}
+                        <div className="grid grid-cols-3 gap-2 text-xs mb-4">
+                          <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
+                            <Sword className="h-3 w-3 text-[#4cc9ff] mb-1" />
+                            <span className="text-[#8bacc1]">STR</span>
+                            <span>{selectedEnemy.stats.str}</span>
+                          </div>
+                          <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
+                            <Shield className="h-3 w-3 text-[#4cc9ff] mb-1" />
+                            <span className="text-[#8bacc1]">VIT</span>
+                            <span>{selectedEnemy.stats.vit}</span>
+                          </div>
+                          <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
+                            <Zap className="h-3 w-3 text-[#4cc9ff] mb-1" />
+                            <span className="text-[#8bacc1]">AGI</span>
+                            <span>{selectedEnemy.stats.agi}</span>
+                          </div>
+                          <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
+                            <Brain className="h-3 w-3 text-[#4cc9ff] mb-1" />
+                            <span className="text-[#8bacc1]">INT</span>
+                            <span>{selectedEnemy.stats.int}</span>
+                          </div>
+                          <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
+                            <Eye className="h-3 w-3 text-[#4cc9ff] mb-1" />
+                            <span className="text-[#8bacc1]">PER</span>
+                            <span>{selectedEnemy.stats.per}</span>
+                          </div>
                         </div>
-                        <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
-                          <Shield className="h-3 w-3 text-[#4cc9ff] mb-1" />
-                          <span className="text-[#8bacc1]">VIT</span>
-                          <span>{selectedEnemy.stats.vit}</span>
-                        </div>
-                        <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
-                          <Zap className="h-3 w-3 text-[#4cc9ff] mb-1" />
-                          <span className="text-[#8bacc1]">AGI</span>
-                          <span>{selectedEnemy.stats.agi}</span>
-                        </div>
-                        <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
-                          <Brain className="h-3 w-3 text-[#4cc9ff] mb-1" />
-                          <span className="text-[#8bacc1]">INT</span>
-                          <span>{selectedEnemy.stats.int}</span>
-                        </div>
-                        <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
-                          <Eye className="h-3 w-3 text-[#4cc9ff] mb-1" />
-                          <span className="text-[#8bacc1]">PER</span>
-                          <span>{selectedEnemy.stats.per}</span>
-                        </div>
-                      </div>
-
-                      {/* Enemy Image Placeholder */}
-                      <div className="w-full h-40 bg-[#1e2a3a] rounded-md flex items-center justify-center mb-4">
-                        <span className="text-[#8bacc1]">{selectedEnemy.name} Image</span>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="relative z-10">
+                      </CardContent>
                       {!inCombat && !showRewards && (
-                        <Button
-                          className="w-full bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
-                          onClick={() => startCombat(selectedEnemy)}
-                        >
-                          Start Combat
-                        </Button>
+                        <CardFooter className="relative z-10">
+                          <Button
+                            className="w-full bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
+                            onClick={() => startCombat(selectedEnemy)}
+                          >
+                            Start Combat
+                          </Button>
+                        </CardFooter>
                       )}
                       {showRewards && (
-                        <Button
-                          className="w-full bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
-                          onClick={claimRewards}
-                        >
-                          Claim Rewards
-                        </Button>
+                        <CardFooter className="relative z-10">
+                          <Button
+                            className="w-full bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
+                            onClick={claimRewards}
+                          >
+                            Claim Rewards
+                          </Button>
+                        </CardFooter>
                       )}
-                    </CardFooter>
-                  </>
+                    </>
+                  )}
+                </Card>
+
+                {/* Combat Visualization */}
+                {inCombat && selectedEnemy && (
+                  <CombatVisualization
+                    playerName={userStats.name || "Hunter"}
+                    enemyName={selectedEnemy.name}
+                    isPlayerTurn={playerTurn}
+                    isAttacking={isAttacking}
+                    isDefending={isDefending}
+                    onAnimationComplete={handleAnimationComplete}
+                  />
                 )}
-              </Card>
+              </>
             )}
           </div>
 
@@ -588,7 +645,15 @@ export default function CombatPage() {
 
         {/* Rewards Dialog */}
         <Dialog open={showRewards} onOpenChange={setShowRewards}>
-          <DialogContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff]">
+          <DialogContent
+            className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff] w-[90%] sm:max-w-md animate-solo-modal"
+            style={
+              {
+                "--solo-expand-duration": "0.5s",
+                "--solo-expand-easing": "cubic-bezier(0.16, 1, 0.3, 1)",
+              } as React.CSSProperties
+            }
+          >
             <DialogHeader>
               <DialogTitle className="text-[#4cc9ff]">Victory Rewards</DialogTitle>
               <DialogDescription className="text-[#8bacc1]">You have defeated {selectedEnemy?.name}!</DialogDescription>

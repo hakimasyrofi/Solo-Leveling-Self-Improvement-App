@@ -42,7 +42,7 @@ export interface AIQuestData {
   title: string
   description: string
   difficulty: "S" | "A" | "B" | "C" | "D" | "E"
-  expiry: string
+  expiry?: string // Made optional since we won't use it
   expReward: number
   statPointsReward: number
   goldReward: number
@@ -88,7 +88,6 @@ const generateQuestWithOpenAI = async (description: string): Promise<AIQuestData
               "title": "Corrected title (keep it close to original)",
               "description": "Corrected description (keep it close to original)",
               "difficulty": "One of: S, A, B, C, D, E (S is hardest, E is easiest)",
-              "expiry": "One of: Daily, Weekly, Monthly, One-time",
               "expReward": number (10-500 based on difficulty),
               "statPointsReward": number (1-10 based on difficulty),
               "goldReward": number (10-1000 based on difficulty),
@@ -109,8 +108,8 @@ const generateQuestWithOpenAI = async (description: string): Promise<AIQuestData
             }
             Analyze the description to determine appropriate stats to reward based on the activity.
             For example, physical activities should reward STR and VIT, mental activities should reward INT and PER, etc.
-The difficulty should be based on how challenging the task seems.
-Only include 1-2 item rewards for difficult quests (S, A, B), and none for easier quests.`,
+            The difficulty should be based on how challenging the task seems.
+            Only include 1-2 item rewards for difficult quests (S, A, B), and none for easier quests.`,
           },
           {
             role: "user",
@@ -173,7 +172,6 @@ const generateQuestWithGemini = async (description: string): Promise<AIQuestData
                   "title": "Corrected title (keep it close to original)",
                   "description": "Corrected description (keep it close to original)",
                   "difficulty": "One of: S, A, B, C, D, E (S is hardest, E is easiest)",
-                  "expiry": "One of: Daily, Weekly, Monthly, One-time",
                   "expReward": number (10-500 based on difficulty),
                   "statPointsReward": number (1-10 based on difficulty),
                   "goldReward": number (10-1000 based on difficulty),

@@ -132,7 +132,7 @@ export const calculateExpToNextLevel = (level: number): number => {
   return Math.floor(100 * Math.pow(1.1, level - 1))
 }
 
-// Level up function
+// Update the levelUp function to give 7 stat points per level instead of 10
 export const levelUp = (stats: UserStats): UserStats => {
   const newLevel = stats.level + 1
 
@@ -159,7 +159,7 @@ export const levelUp = (stats: UserStats): UserStats => {
     maxMp: newMaxMp,
     mp: newMaxMp, // Fully restore MP on level up
     stats: newStats,
-    statPoints: stats.statPoints + 10, // Add 10 stat points per level
+    statPoints: stats.statPoints + 7, // Changed from 10 to 7 stat points per level
   }
 }
 

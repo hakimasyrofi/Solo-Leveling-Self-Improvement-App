@@ -34,7 +34,7 @@ export function AddQuestForm() {
     title: "",
     description: "",
     difficulty: "C" as "S" | "A" | "B" | "C" | "D" | "E",
-    expiry: "Daily",
+    expiry: "One-time", // Changed default to One-time
     expReward: 30,
     statPointsReward: 1,
     goldReward: 0,
@@ -148,7 +148,7 @@ export function AddQuestForm() {
       title: "",
       description: "",
       difficulty: "C",
-      expiry: "Daily",
+      expiry: "One-time", // Reset to One-time
       expReward: 30,
       statPointsReward: 1,
       goldReward: 0,
@@ -185,13 +185,13 @@ export function AddQuestForm() {
       const questData = await generateQuestData(formData.description)
       const provider = getAIProvider() || "AI"
 
-      // Update form data with AI-generated data
+      // Update form data with AI-generated data, but keep the current expiry
       setFormData((prev) => ({
         ...prev,
         title: questData.title || prev.title,
         description: questData.description || prev.description,
         difficulty: questData.difficulty || prev.difficulty,
-        expiry: questData.expiry || prev.expiry,
+        // Don't update expiry from AI
         expReward: questData.expReward || prev.expReward,
         statPointsReward: questData.statPointsReward || prev.statPointsReward,
         goldReward: questData.goldReward || prev.goldReward,
@@ -264,35 +264,36 @@ export function AddQuestForm() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="description">Description</Label>
-                <div className="relative">
-                  <Textarea
-                    id="description"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    className="bg-[#0a0e14] border-[#1e2a3a] min-h-[80px]"
-                    required
-                  />
-                  <Button
-                    type="button"
-                    className="absolute right-2 bottom-2 h-8 px-2 bg-[#1e2a3a] hover:bg-[#2a3a4a] text-[#4cc9ff]"
-                    onClick={handleGenerateWithAI}
-                    disabled={isGeneratingWithAI || !formData.description.trim()}
-                  >
-                    {isGeneratingWithAI ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-4 w-4 mr-1" />
-                        Fill with AI
-                      </>
-                    )}
-                  </Button>
-                </div>
+                <Textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  className="bg-[#0a0e14] border-[#1e2a3a] min-h-[80px]"
+                  required
+                />
               </div>
+
+              {/* Moved AI button here, outside of the textarea */}
+              <Button
+                type="button"
+                className="bg-[#1e2a3a] hover:bg-[#2a3a4a] text-[#4cc9ff] w-full"
+                onClick={handleGenerateWithAI}
+                disabled={isGeneratingWithAI || !formData.description.trim()}
+              >
+                {isGeneratingWithAI ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Generating with AI...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Enhance with AI
+                  </>
+                )}
+              </Button>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="difficulty">Difficulty</Label>
@@ -320,10 +321,10 @@ export function AddQuestForm() {
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#0a0e14] border-[#1e2a3a]">
+                      <SelectItem value="One-time">One-time</SelectItem>
                       <SelectItem value="Daily">Daily</SelectItem>
                       <SelectItem value="Weekly">Weekly</SelectItem>
                       <SelectItem value="Monthly">Monthly</SelectItem>
-                      <SelectItem value="One-time">One-time</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

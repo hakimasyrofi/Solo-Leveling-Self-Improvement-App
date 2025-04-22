@@ -2,6 +2,17 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Card, CardContent } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { Heart, Zap, Info } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 interface CombatVisualizationProps {
   playerName: string
@@ -12,6 +23,20 @@ interface CombatVisualizationProps {
   attackDamage?: number
   isCritical?: boolean
   skillName?: string
+  playerHp: number
+  playerMaxHp: number
+  playerMp: number
+  playerMaxMp: number
+  playerLevel: number
+  enemyHp: number
+  enemyMaxHp: number
+  playerStats: {
+    str: number
+    agi: number
+    per: number
+    int: number
+    vit: number
+  }
   onAnimationComplete: () => void
 }
 
@@ -24,6 +49,14 @@ export function CombatVisualization({
   attackDamage = 0,
   isCritical = false,
   skillName,
+  playerHp,
+  playerMaxHp,
+  playerMp,
+  playerMaxMp,
+  playerLevel,
+  enemyHp,
+  enemyMaxHp,
+  playerStats,
   onAnimationComplete,
 }: CombatVisualizationProps) {
   const [playerPosition, setPlayerPosition] = useState({ x: 100, y: 200 })
@@ -36,10 +69,14 @@ export function CombatVisualization({
   const [damageText, setDamageText] = useState("")
   const [showDamageText, setShowDamageText] = useState(false)
   const [damageTextPosition, setDamageTextPosition] = useState({ x: 0, y: 0 })
+  const [showStatsDialog, setShowStatsDialog] = useState(false)
+  const [combatMessage, setCombatMessage] = useState("")
+  const [showCombatMessage, setShowCombatMessage] = useState(false)
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>(0)
   const originalPositions = useRef({ player: { x: 100, y: 200 }, enemy: { x: 300, y: 200 } })
+  const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Animation logic
   useEffect(() => {
@@ -47,15 +84,37 @@ export function CombatVisualization({
       // Determine who is attacking and who is receiving
       const isPlayerAttacking = isPlayerTurn
 
+      // Set combat message
+      if (isPlayerAttacking) {
+        if (skillName) {
+          setCombatMessage(`You used ${skillName} for ${attackDamage} damage${isCritical ? " (Critical!)" : ""}!`)
+        } else {
+          setCombatMessage(`You attacked for ${attackDamage} damage${isCritical ? " (Critical!)" : ""}!`)
+        }
+      } else {
+        setCombatMessage(`${enemyName} attacked you for ${attackDamage} damage!`)
+      }
+      setShowCombatMessage(true)
+
+      // Clear any existing timeout
+      if (messageTimeoutRef.current) {
+        clearTimeout(messageTimeoutRef.current)
+      }
+
+      // Set timeout to hide message
+      messageTimeoutRef.current = setTimeout(() => {
+        setShowCombatMessage(false)
+      }, 3000)
+
       if (isPlayerAttacking) {
         // Player attacking enemy
         setEffectType("attack")
 
         // Set damage text
         if (skillName) {
-          setDamageText(`${skillName}! ${attackDamage} damage${isCritical ? " (Critical!)" : ""}`)
+          setDamageText(`${skillName}! ${attackDamage}${isCritical ? " CRIT!" : ""}`)
         } else {
-          setDamageText(`${attackDamage} damage${isCritical ? " (Critical!)" : ""}`)
+          setDamageText(`${attackDamage}${isCritical ? " CRIT!" : ""}`)
         }
 
         // Animate player moving toward enemy
@@ -120,7 +179,7 @@ export function CombatVisualization({
         setEffectType("attack")
 
         // Set damage text
-        setDamageText(`${attackDamage} damage`)
+        setDamageText(`${attackDamage}`)
 
         // Animate enemy moving toward player
         const startTime = Date.now()
@@ -194,6 +253,20 @@ export function CombatVisualization({
       })
       setShowDamageText(true)
 
+      // Set combat message
+      setCombatMessage("You are defending! Damage reduced by 50%")
+      setShowCombatMessage(true)
+
+      // Clear any existing timeout
+      if (messageTimeoutRef.current) {
+        clearTimeout(messageTimeoutRef.current)
+      }
+
+      // Set timeout to hide message
+      messageTimeoutRef.current = setTimeout(() => {
+        setShowCombatMessage(false)
+      }, 3000)
+
       // Show defend effect for a short time
       const timer = setTimeout(() => {
         setShowEffect(false)
@@ -206,8 +279,22 @@ export function CombatVisualization({
 
     return () => {
       cancelAnimationFrame(animationRef.current)
+      if (messageTimeoutRef.current) {
+        clearTimeout(messageTimeoutRef.current)
+      }
     }
-  }, [isAttacking, isDefending, isPlayerTurn, onAnimationComplete, attackDamage, isCritical, skillName])
+  }, [
+    isAttacking,
+    isDefending,
+    isPlayerTurn,
+    onAnimationComplete,
+    attackDamage,
+    isCritical,
+    skillName,
+    enemyName,
+    playerPosition,
+    enemyPosition,
+  ])
 
   // Draw the combat scene
   useEffect(() => {
@@ -333,8 +420,93 @@ export function CombatVisualization({
   return (
     <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative">
       <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
-      <CardContent className="p-4 relative z-10 flex justify-center">
-        <canvas ref={canvasRef} width={400} height={300} className="border border-[#1e2a3a] rounded-md" />
+      <CardContent className="p-4 relative z-10">
+        {/* Stats Bar */}
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center">
+                <Heart className="h-3 w-3 text-red-400 mr-1" />
+                <span className="text-xs">
+                  {playerHp}/{playerMaxHp}
+                </span>
+              </div>
+              <span className="text-xs">Lv.{playerLevel}</span>
+            </div>
+            <Progress value={(playerHp / playerMaxHp) * 100} className="h-2 bg-[#1e2a3a]">
+              <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
+            </Progress>
+            <div className="flex items-center justify-between mt-1">
+              <div className="flex items-center">
+                <Zap className="h-3 w-3 text-blue-400 mr-1" />
+                <span className="text-xs">
+                  {playerMp}/{playerMaxMp}
+                </span>
+              </div>
+              <Dialog open={showStatsDialog} onOpenChange={setShowStatsDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <Info className="h-3 w-3" />
+                    <span className="sr-only">Stats</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff]">
+                  <DialogHeader>
+                    <DialogTitle className="text-[#4cc9ff]">Player Stats</DialogTitle>
+                    <DialogDescription className="text-[#8bacc1]">Detailed stats for {playerName}</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid grid-cols-2 gap-4 py-4">
+                    <div className="flex items-center">
+                      <span className="text-[#8bacc1] mr-2">STR:</span>
+                      <span>{playerStats.str}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-[#8bacc1] mr-2">VIT:</span>
+                      <span>{playerStats.vit}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-[#8bacc1] mr-2">AGI:</span>
+                      <span>{playerStats.agi}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-[#8bacc1] mr-2">INT:</span>
+                      <span>{playerStats.int}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-[#8bacc1] mr-2">PER:</span>
+                      <span>{playerStats.per}</span>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+          <div className="w-8"></div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs">Lv.{enemyName.includes("Lv") ? "" : ""}</span>
+              <div className="flex items-center">
+                <Heart className="h-3 w-3 text-red-400 mr-1" />
+                <span className="text-xs">
+                  {enemyHp}/{enemyMaxHp}
+                </span>
+              </div>
+            </div>
+            <Progress value={(enemyHp / enemyMaxHp) * 100} className="h-2 bg-[#1e2a3a]">
+              <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
+            </Progress>
+          </div>
+        </div>
+        {showCombatMessage && (
+          <div className="absolute top-16 left-0 right-0 z-20 flex justify-center">
+            <div className="bg-[#0a0e14]/90 border border-[#4cc9ff]/30 px-4 py-2 rounded-md text-sm animate-fadeIn">
+              {combatMessage}
+            </div>
+          </div>
+        )}
+        <div className="flex justify-center">
+          <canvas ref={canvasRef} width={400} height={300} className="border border-[#1e2a3a] rounded-md" />
+        </div>
       </CardContent>
     </Card>
   )

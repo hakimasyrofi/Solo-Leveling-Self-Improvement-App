@@ -24,10 +24,9 @@ import { enemies, type Enemy } from "@/data/enemies"
 import { CombatActions } from "@/components/combat-actions"
 import { EnemySelection } from "@/components/enemy-selection"
 import { CombatVisualization } from "@/components/combat-visualization"
-import { CombatLog } from "@/components/combat-log"
 
 export default function CombatPage() {
-  const { userStats, setUserStats, addExp, addItem, addGold } = useUser()
+  const { userStats, setUserStats, addExp, addItem, addGold, removeItem } = useUser()
   const { toast } = useToast()
 
   // Combat states
@@ -238,11 +237,66 @@ export default function CombatPage() {
 
   // Player uses an item
   const playerUseItem = (itemId: string) => {
-    // This would be implemented to use items from inventory during combat
-    toast({
-      title: "Item Use",
-      description: "Item use is not implemented yet.",
-    })
+    if (!inCombat || !playerTurn || isAnimating) return
+
+    const item = userStats.inventory.find((i) => i.id === itemId)
+
+    if (!item) {
+      toast({
+        title: "Item not found",
+        description: "The selected item could not be found in your inventory.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    let effectApplied = false
+
+    // Apply item effects based on item type and id
+    if (item.type === "Consumable") {
+      switch (item.id) {
+        case "item-health-potion":
+          const healAmount = 100
+          setPlayerHp((prev) => Math.min(userStats.maxHp, prev + healAmount))
+          toast({
+            title: "Health Restored",
+            description: `You used a Health Potion and restored ${healAmount} HP.`,
+          })
+          effectApplied = true
+          break
+        case "item-mana-potion":
+          const manaAmount = 50
+          setPlayerMp((prev) => Math.min(userStats.maxMp, prev + manaAmount))
+          toast({
+            title: "Mana Restored",
+            description: `You used a Mana Potion and restored ${manaAmount} MP.`,
+          })
+          effectApplied = true
+          break
+        default:
+          toast({
+            title: "Item Effect Unknown",
+            description: "This item's effect is not implemented yet.",
+            variant: "destructive",
+          })
+      }
+    } else {
+      toast({
+        title: "Cannot Use Item",
+        description: "Only consumable items can be used in combat.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (effectApplied) {
+      // Remove the item from inventory
+      removeItem(itemId, 1)
+
+      // End player's turn
+      setPlayerTurn(false)
+      setTimeout(() => enemyTurn(), 1000)
+    }
   }
 
   // Enemy takes their turn
@@ -303,6 +357,11 @@ export default function CombatPage() {
 
       setRewards(combatRewards)
       setShowRewards(true)
+
+      toast({
+        title: "Victory!",
+        description: `You have defeated ${selectedEnemy.name}!`,
+      })
     } else {
       addToCombatLog(`You have been defeated by ${selectedEnemy.name}.`)
 
@@ -408,8 +467,103 @@ export default function CombatPage() {
         </header>
 
         {/* Main Combat Area */}
-        <div className={`grid grid-cols-1 ${inCombat ? "lg:grid-cols-2" : "lg:grid-cols-2"} gap-6`}>
-          {/* Left Column - Player Stats */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Combat Area */}
+          <div className="lg:col-span-1">
+            {!selectedEnemy && !inCombat ? (
+              <EnemySelection enemies={enemies} onSelectEnemy={startCombat} />
+            ) : (
+              <>
+                {/* Combat Visualization */}
+                {inCombat && selectedEnemy && (
+                  <CombatVisualization
+                    playerName={userStats.name || "Hunter"}
+                    enemyName={selectedEnemy.name}
+                    isPlayerTurn={playerTurn}
+                    isAttacking={isAttacking}
+                    isDefending={isDefending}
+                    attackDamage={currentDamage}
+                    isCritical={isCriticalHit}
+                    skillName={currentSkill}
+                    playerHp={playerHp}
+                    playerMaxHp={userStats.maxHp}
+                    playerMp={playerMp}
+                    playerMaxMp={userStats.maxMp}
+                    playerLevel={userStats.level}
+                    enemyHp={enemyHp}
+                    enemyMaxHp={enemyMaxHp}
+                    playerStats={userStats.stats}
+                    onAnimationComplete={handleAnimationComplete}
+                  />
+                )}
+
+                {!inCombat && selectedEnemy && (
+                  <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative mb-4">
+                    <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
+                    <CardHeader className="pb-2 relative z-10">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-[#4cc9ff]">{selectedEnemy.name}</CardTitle>
+                        <Badge className="bg-[#1e2a3a]">Level {selectedEnemy.level}</Badge>
+                      </div>
+                      <CardDescription>{selectedEnemy.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="relative z-10">
+                      {/* Enemy Stats */}
+                      <div className="grid grid-cols-3 gap-2 text-xs mb-4">
+                        <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
+                          <Sword className="h-3 w-3 text-[#4cc9ff] mb-1" />
+                          <span className="text-[#8bacc1]">STR</span>
+                          <span>{selectedEnemy.stats.str}</span>
+                        </div>
+                        <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
+                          <Shield className="h-3 w-3 text-[#4cc9ff] mb-1" />
+                          <span className="text-[#8bacc1]">VIT</span>
+                          <span>{selectedEnemy.stats.vit}</span>
+                        </div>
+                        <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
+                          <Zap className="h-3 w-3 text-[#4cc9ff] mb-1" />
+                          <span className="text-[#8bacc1]">AGI</span>
+                          <span>{selectedEnemy.stats.agi}</span>
+                        </div>
+                        <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
+                          <Brain className="h-3 w-3 text-[#4cc9ff] mb-1" />
+                          <span className="text-[#8bacc1]">INT</span>
+                          <span>{selectedEnemy.stats.int}</span>
+                        </div>
+                        <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
+                          <Eye className="h-3 w-3 text-[#4cc9ff] mb-1" />
+                          <span className="text-[#8bacc1]">PER</span>
+                          <span>{selectedEnemy.stats.per}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                    {!inCombat && !showRewards && (
+                      <CardFooter className="relative z-10">
+                        <Button
+                          className="w-full bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
+                          onClick={() => startCombat(selectedEnemy)}
+                        >
+                          Start Combat
+                        </Button>
+                      </CardFooter>
+                    )}
+                    {showRewards && (
+                      <CardFooter className="relative z-10">
+                        <Button
+                          className="w-full bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
+                          onClick={claimRewards}
+                        >
+                          Claim Rewards
+                        </Button>
+                      </CardFooter>
+                    )}
+                  </Card>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Right Column - Player Stats */}
           <div className="lg:col-span-1">
             <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative h-full">
               <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
@@ -506,118 +660,6 @@ export default function CombatPage() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Right Column - Combat Area */}
-          <div className="lg:col-span-1">
-            {!selectedEnemy && !inCombat ? (
-              <EnemySelection enemies={enemies} onSelectEnemy={startCombat} />
-            ) : (
-              <>
-                <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative mb-4">
-                  <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
-                  {selectedEnemy && (
-                    <>
-                      <CardHeader className="pb-2 relative z-10">
-                        <div className="flex justify-between items-start">
-                          <CardTitle className="text-[#4cc9ff]">{selectedEnemy.name}</CardTitle>
-                          <Badge className="bg-[#1e2a3a]">Level {selectedEnemy.level}</Badge>
-                        </div>
-                        <CardDescription>{selectedEnemy.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="relative z-10">
-                        {/* Enemy HP Bar */}
-                        <div className="mb-4">
-                          <div className="flex justify-between text-xs mb-1">
-                            <span className="flex items-center">
-                              <Heart className="h-3 w-3 text-red-400 mr-1" />
-                              <span>HP</span>
-                            </span>
-                            <span>
-                              {enemyHp}/{enemyMaxHp}
-                            </span>
-                          </div>
-                          <Progress value={(enemyHp / enemyMaxHp) * 100} className="h-2 bg-[#1e2a3a]">
-                            <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
-                          </Progress>
-                        </div>
-
-                        {/* Enemy Stats */}
-                        <div className="grid grid-cols-3 gap-2 text-xs mb-4">
-                          <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
-                            <Sword className="h-3 w-3 text-[#4cc9ff] mb-1" />
-                            <span className="text-[#8bacc1]">STR</span>
-                            <span>{selectedEnemy.stats.str}</span>
-                          </div>
-                          <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
-                            <Shield className="h-3 w-3 text-[#4cc9ff] mb-1" />
-                            <span className="text-[#8bacc1]">VIT</span>
-                            <span>{selectedEnemy.stats.vit}</span>
-                          </div>
-                          <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
-                            <Zap className="h-3 w-3 text-[#4cc9ff] mb-1" />
-                            <span className="text-[#8bacc1]">AGI</span>
-                            <span>{selectedEnemy.stats.agi}</span>
-                          </div>
-                          <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
-                            <Brain className="h-3 w-3 text-[#4cc9ff] mb-1" />
-                            <span className="text-[#8bacc1]">INT</span>
-                            <span>{selectedEnemy.stats.int}</span>
-                          </div>
-                          <div className="flex flex-col items-center p-2 bg-[#1e2a3a] rounded-md">
-                            <Eye className="h-3 w-3 text-[#4cc9ff] mb-1" />
-                            <span className="text-[#8bacc1]">PER</span>
-                            <span>{selectedEnemy.stats.per}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                      {!inCombat && !showRewards && (
-                        <CardFooter className="relative z-10">
-                          <Button
-                            className="w-full bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
-                            onClick={() => startCombat(selectedEnemy)}
-                          >
-                            Start Combat
-                          </Button>
-                        </CardFooter>
-                      )}
-                      {showRewards && (
-                        <CardFooter className="relative z-10">
-                          <Button
-                            className="w-full bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
-                            onClick={claimRewards}
-                          >
-                            Claim Rewards
-                          </Button>
-                        </CardFooter>
-                      )}
-                    </>
-                  )}
-                </Card>
-
-                {/* Combat Visualization */}
-                {inCombat && selectedEnemy && (
-                  <CombatVisualization
-                    playerName={userStats.name || "Hunter"}
-                    enemyName={selectedEnemy.name}
-                    isPlayerTurn={playerTurn}
-                    isAttacking={isAttacking}
-                    isDefending={isDefending}
-                    attackDamage={currentDamage}
-                    isCritical={isCriticalHit}
-                    skillName={currentSkill}
-                    onAnimationComplete={handleAnimationComplete}
-                  />
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Right Column - Combat Log (only shown during combat) */}
-          {inCombat && (
-            <div className="lg:col-span-1">
-              <CombatLog messages={combatLog} />
-            </div>
-          )}
         </div>
 
         {/* Combat Actions */}

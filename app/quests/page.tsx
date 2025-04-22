@@ -187,73 +187,72 @@ function QuestCard({
     <Card className={`bg-[#0a0e14]/80 border-[#1e2a3a] relative ${quest.completed ? "opacity-70" : ""}`}>
       <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
       <CardHeader className="pb-2 relative z-10">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="flex items-center mb-1">
-              <CardTitle className="text-base">{quest.title}</CardTitle>
-              {quest.isCustom && (
-                <span className="ml-2 text-xs bg-[#1e2a3a] text-[#8bacc1] px-2 py-0.5 rounded-full">Custom</span>
-              )}
-            </div>
-            <CardDescription>{quest.description}</CardDescription>
+        {/* Action bar with difficulty and menu - positioned above the title */}
+        <div className="flex justify-between items-center mb-2">
+          <div
+            className={`${difficultyColors[quest.difficulty]} w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold`}
+          >
+            {quest.difficulty}
           </div>
-          <div className="flex items-center gap-2 mt-2 sm:mt-0">
-            <div
-              className={`${difficultyColors[quest.difficulty]} w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold`}
-            >
-              {quest.difficulty}
-            </div>
 
-            {/* Dropdown menu for actions (better for mobile) */}
-            {onDelete && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
-                    <MoreVertical className="h-4 w-4" />
-                    <span className="sr-only">Actions</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff]">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem
-                        className="text-red-400 focus:text-red-400 focus:bg-red-900/20"
-                        onSelect={(e) => e.preventDefault()}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Quest
-                      </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent
-                      className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff] w-[90%] sm:max-w-md animate-solo-modal"
-                      style={
-                        {
-                          "--solo-expand-duration": "0.5s",
-                          "--solo-expand-easing": "cubic-bezier(0.16, 1, 0.3, 1)",
-                        } as React.CSSProperties
-                      }
+          {/* Dropdown menu for actions */}
+          {onDelete && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">Actions</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff]">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem
+                      className="text-red-400 focus:text-red-400 focus:bg-red-900/20"
+                      onSelect={(e) => e.preventDefault()}
                     >
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="text-[#4cc9ff]">Delete Quest</AlertDialogTitle>
-                        <AlertDialogDescription className="text-[#8bacc1]">
-                          Are you sure you want to delete this quest? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel className="bg-[#1e2a3a] text-[#e0f2ff] hover:bg-[#2a3a4a]">
-                          Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction className="bg-red-900 text-[#e0f2ff] hover:bg-red-800" onClick={onDelete}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Quest
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent
+                    className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff] w-[90%] sm:max-w-md animate-solo-modal"
+                    style={
+                      {
+                        "--solo-expand-duration": "0.5s",
+                        "--solo-expand-easing": "cubic-bezier(0.16, 1, 0.3, 1)",
+                      } as React.CSSProperties
+                    }
+                  >
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-[#4cc9ff]">Delete Quest</AlertDialogTitle>
+                      <AlertDialogDescription className="text-[#8bacc1]">
+                        Are you sure you want to delete this quest? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="bg-[#1e2a3a] text-[#e0f2ff] hover:bg-[#2a3a4a]">
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction className="bg-red-900 text-[#e0f2ff] hover:bg-red-800" onClick={onDelete}>
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
+
+        {/* Title and custom tag */}
+        <div className="flex items-center">
+          <CardTitle className="text-base">{quest.title}</CardTitle>
+          {quest.isCustom && (
+            <span className="ml-2 text-xs bg-[#1e2a3a] text-[#8bacc1] px-2 py-0.5 rounded-full">Custom</span>
+          )}
+        </div>
+        <CardDescription>{quest.description}</CardDescription>
       </CardHeader>
       <CardContent className="relative z-10">
         <div className="space-y-2">

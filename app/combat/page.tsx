@@ -21,10 +21,10 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { useUser } from "@/context/user-context"
 import { enemies, type Enemy } from "@/data/enemies"
-import { CombatLog } from "@/components/combat-log"
 import { CombatActions } from "@/components/combat-actions"
 import { EnemySelection } from "@/components/enemy-selection"
 import { CombatVisualization } from "@/components/combat-visualization"
+import { CombatLog } from "@/components/combat-log"
 
 export default function CombatPage() {
   const { userStats, setUserStats, addExp, addItem, addGold } = useUser()
@@ -38,7 +38,6 @@ export default function CombatPage() {
   const [playerMp, setPlayerMp] = useState(userStats.mp)
   const [enemyHp, setEnemyHp] = useState(0)
   const [enemyMaxHp, setEnemyMaxHp] = useState(0)
-  const [combatLog, setCombatLog] = useState<string[]>([])
   const [showRewards, setShowRewards] = useState(false)
   const [rewards, setRewards] = useState<{
     exp: number
@@ -47,10 +46,14 @@ export default function CombatPage() {
   }>({ exp: 0, gold: 0, items: [] })
   const [isDefending, setIsDefending] = useState(false)
   const [skillCooldowns, setSkillCooldowns] = useState<Record<string, number>>({})
+  const [combatLog, setCombatLog] = useState<string[]>([])
 
   // Animation states
   const [isAttacking, setIsAttacking] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
+  const [currentDamage, setCurrentDamage] = useState(0)
+  const [isCriticalHit, setIsCriticalHit] = useState(false)
+  const [currentSkill, setCurrentSkill] = useState<string | undefined>(undefined)
 
   // Reset combat state when component unmounts
   useEffect(() => {
@@ -77,7 +80,7 @@ export default function CombatPage() {
     setInCombat(true)
     setIsDefending(false)
     setSkillCooldowns({})
-    setCombatLog([`Combat with ${enemy.name} has begun!`])
+    setCombatLog([])
   }
 
   // Calculate enemy HP based on level and vitality
@@ -103,8 +106,17 @@ export default function CombatPage() {
   const playerAttack = () => {
     if (!selectedEnemy || !inCombat || !playerTurn || isAnimating) return
 
+    const isCritical = checkCritical(userStats.stats.agi)
+    const damage = calculateDamage(userStats.stats.str, selectedEnemy.stats.vit, isCritical)
+
+    // Set current damage for visualization
+    setCurrentDamage(damage)
+    setIsCriticalHit(isCritical)
+    setCurrentSkill(undefined)
+
     setIsAnimating(true)
     setIsAttacking(true)
+    addToCombatLog(`You attacked ${selectedEnemy.name} for ${damage} damage!`)
   }
 
   // Handle animation completion
@@ -116,20 +128,12 @@ export default function CombatPage() {
 
     if (playerTurn) {
       // Player attack logic after animation
-      const isCritical = checkCritical(userStats.stats.agi)
-      const damage = calculateDamage(userStats.stats.str, selectedEnemy.stats.vit, isCritical)
-
-      const newEnemyHp = Math.max(0, enemyHp - damage)
+      const newEnemyHp = Math.max(0, enemyHp - currentDamage)
       setEnemyHp(newEnemyHp)
-
-      const logMessage = isCritical
-        ? `You land a critical hit on ${selectedEnemy.name} for ${damage} damage!`
-        : `You attack ${selectedEnemy.name} for ${damage} damage.`
-
-      addToCombatLog(logMessage)
 
       if (newEnemyHp <= 0) {
         endCombat(true)
+        return // Important: Stop execution here to prevent enemy turn
       } else {
         setPlayerTurn(false)
         // Enemy's turn after a short delay
@@ -139,6 +143,12 @@ export default function CombatPage() {
       // Enemy attack logic after animation
       if (isDefending) {
         setIsDefending(false)
+      }
+
+      // Check if player is defeated
+      if (playerHp <= 0) {
+        endCombat(false)
+        return // Important: Stop execution here
       }
 
       setPlayerTurn(true)
@@ -151,8 +161,7 @@ export default function CombatPage() {
 
     setIsAnimating(true)
     setIsDefending(true)
-
-    addToCombatLog("You take a defensive stance, reducing incoming damage by 50%.")
+    addToCombatLog("You defended!")
 
     setTimeout(() => {
       setIsAnimating(false)
@@ -193,65 +202,47 @@ export default function CombatPage() {
       [skillName]: cooldown,
     }))
 
-    setIsAnimating(true)
-    setIsAttacking(true)
-
     let damage = 0
-    let logMessage = ""
 
     // Different skills have different effects
     switch (skillName) {
       case "Power Strike":
         damage = calculateDamage(userStats.stats.str * 2, selectedEnemy.stats.vit)
-        logMessage = `You use Power Strike, dealing ${damage} damage to ${selectedEnemy.name}!`
         break
       case "Double Slash":
         const hit1 = calculateDamage(userStats.stats.str * 0.7, selectedEnemy.stats.vit)
         const hit2 = calculateDamage(userStats.stats.str * 0.7, selectedEnemy.stats.vit)
         damage = hit1 + hit2
-        logMessage = `You use Double Slash, hitting ${selectedEnemy.name} twice for ${hit1} and ${hit2} damage!`
         break
       case "Fireball":
         damage = calculateDamage(userStats.stats.int * 2, selectedEnemy.stats.vit)
-        logMessage = `You cast Fireball, dealing ${damage} magical damage to ${selectedEnemy.name}!`
         break
       case "Heal":
         const healAmount = Math.floor(userStats.stats.int * 1.5)
         setPlayerHp((prev) => Math.min(userStats.maxHp, prev + healAmount))
-        logMessage = `You cast Heal, restoring ${healAmount} HP!`
         damage = 0
         break
       default:
         damage = 0
-        logMessage = `You attempt to use ${skillName}, but nothing happens.`
     }
 
-    addToCombatLog(logMessage)
+    // Set current damage and skill for visualization
+    setCurrentDamage(damage)
+    setIsCriticalHit(false)
+    setCurrentSkill(skillName)
 
-    setTimeout(() => {
-      setIsAnimating(false)
-
-      if (damage > 0) {
-        const newEnemyHp = Math.max(0, enemyHp - damage)
-        setEnemyHp(newEnemyHp)
-
-        if (newEnemyHp <= 0) {
-          endCombat(true)
-          return
-        }
-      }
-
-      setPlayerTurn(false)
-      // Enemy's turn after a short delay
-      setTimeout(() => enemyTurn(), 500)
-    }, 1000)
+    setIsAnimating(true)
+    setIsAttacking(true)
+    addToCombatLog(`You used ${skillName} for ${damage} damage!`)
   }
 
   // Player uses an item
   const playerUseItem = (itemId: string) => {
     // This would be implemented to use items from inventory during combat
-    // For now, we'll just add a placeholder
-    addToCombatLog("Item use is not implemented yet.")
+    toast({
+      title: "Item Use",
+      description: "Item use is not implemented yet.",
+    })
   }
 
   // Enemy takes their turn
@@ -269,33 +260,26 @@ export default function CombatPage() {
       return newCooldowns
     })
 
-    setIsAnimating(true)
-    setIsAttacking(true)
-
     // Enemy decides what to do (for now, just basic attack)
     const damage = calculateDamage(selectedEnemy.stats.str, userStats.stats.vit)
 
     // Apply defense reduction if player is defending
     const actualDamage = isDefending ? Math.floor(damage * 0.5) : damage
 
-    setTimeout(() => {
-      const newPlayerHp = Math.max(0, playerHp - actualDamage)
-      setPlayerHp(newPlayerHp)
+    // Set current damage for visualization
+    setCurrentDamage(actualDamage)
+    setIsCriticalHit(false)
+    setCurrentSkill(undefined)
 
-      const logMessage = isDefending
-        ? `${selectedEnemy.name} attacks you for ${actualDamage} damage (reduced by defense).`
-        : `${selectedEnemy.name} attacks you for ${actualDamage} damage.`
+    setIsAnimating(true)
+    setIsAttacking(true)
 
-      addToCombatLog(logMessage)
+    // Update player HP
+    const newPlayerHp = Math.max(0, playerHp - actualDamage)
+    setPlayerHp(newPlayerHp)
+    addToCombatLog(`${selectedEnemy.name} attacked you for ${actualDamage} damage!`)
 
-      if (newPlayerHp <= 0) {
-        setIsAnimating(false)
-        endCombat(false)
-      } else {
-        // Animation will handle setting playerTurn to true
-        handleAnimationComplete()
-      }
-    }, 1000)
+    // Check if player is defeated - this will be handled in handleAnimationComplete
   }
 
   // Add message to combat log
@@ -385,11 +369,17 @@ export default function CombatPage() {
     const fleeChance = 50 + (userStats.stats.agi - selectedEnemy.stats.agi) * 2
 
     if (Math.random() * 100 < fleeChance) {
-      addToCombatLog("You successfully fled from combat!")
+      toast({
+        title: "Escaped",
+        description: "You successfully fled from combat!",
+      })
       setInCombat(false)
       setSelectedEnemy(null)
     } else {
-      addToCombatLog("You failed to flee!")
+      toast({
+        title: "Failed to Escape",
+        description: "You failed to flee!",
+      })
       setPlayerTurn(false)
       setTimeout(() => enemyTurn(), 1000)
     }
@@ -418,7 +408,7 @@ export default function CombatPage() {
         </header>
 
         {/* Main Combat Area */}
-        <div className={`grid grid-cols-1 ${inCombat ? "lg:grid-cols-3" : "lg:grid-cols-2"} gap-6`}>
+        <div className={`grid grid-cols-1 ${inCombat ? "lg:grid-cols-2" : "lg:grid-cols-2"} gap-6`}>
           {/* Left Column - Player Stats */}
           <div className="lg:col-span-1">
             <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative h-full">
@@ -517,7 +507,7 @@ export default function CombatPage() {
             </Card>
           </div>
 
-          {/* Middle Column - Combat Area */}
+          {/* Right Column - Combat Area */}
           <div className="lg:col-span-1">
             {!selectedEnemy && !inCombat ? (
               <EnemySelection enemies={enemies} onSelectEnemy={startCombat} />
@@ -612,6 +602,9 @@ export default function CombatPage() {
                     isPlayerTurn={playerTurn}
                     isAttacking={isAttacking}
                     isDefending={isDefending}
+                    attackDamage={currentDamage}
+                    isCritical={isCriticalHit}
+                    skillName={currentSkill}
                     onAnimationComplete={handleAnimationComplete}
                   />
                 )}

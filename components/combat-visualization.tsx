@@ -9,6 +9,9 @@ interface CombatVisualizationProps {
   isPlayerTurn: boolean
   isAttacking: boolean
   isDefending: boolean
+  attackDamage?: number
+  isCritical?: boolean
+  skillName?: string
   onAnimationComplete: () => void
 }
 
@@ -18,6 +21,9 @@ export function CombatVisualization({
   isPlayerTurn,
   isAttacking,
   isDefending,
+  attackDamage = 0,
+  isCritical = false,
+  skillName,
   onAnimationComplete,
 }: CombatVisualizationProps) {
   const [playerPosition, setPlayerPosition] = useState({ x: 100, y: 200 })
@@ -27,6 +33,9 @@ export function CombatVisualization({
   const [effectPosition, setEffectPosition] = useState({ x: 0, y: 0 })
   const [showEffect, setShowEffect] = useState(false)
   const [effectType, setEffectType] = useState<"attack" | "defend" | "damage">("attack")
+  const [damageText, setDamageText] = useState("")
+  const [showDamageText, setShowDamageText] = useState(false)
+  const [damageTextPosition, setDamageTextPosition] = useState({ x: 0, y: 0 })
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number>(0)
@@ -41,6 +50,13 @@ export function CombatVisualization({
       if (isPlayerAttacking) {
         // Player attacking enemy
         setEffectType("attack")
+
+        // Set damage text
+        if (skillName) {
+          setDamageText(`${skillName}! ${attackDamage} damage${isCritical ? " (Critical!)" : ""}`)
+        } else {
+          setDamageText(`${attackDamage} damage${isCritical ? " (Critical!)" : ""}`)
+        }
 
         // Animate player moving toward enemy
         const startTime = Date.now()
@@ -75,8 +91,16 @@ export function CombatVisualization({
             setEffectPosition({ x: originalPositions.current.enemy.x, y: originalPositions.current.enemy.y })
             setShowEffect(true)
             setEffectType("damage")
-          } else {
+
+            // Show damage text
+            setDamageTextPosition({
+              x: originalPositions.current.enemy.x,
+              y: originalPositions.current.enemy.y - 50,
+            })
+            setShowDamageText(true)
+          } else if (progress > 0.8) {
             setShowEffect(false)
+            setShowDamageText(false)
           }
 
           if (progress < 1) {
@@ -85,6 +109,7 @@ export function CombatVisualization({
             // Reset positions
             setPlayerPosition(originalPositions.current.player)
             setShowEffect(false)
+            setShowDamageText(false)
             onAnimationComplete()
           }
         }
@@ -93,6 +118,9 @@ export function CombatVisualization({
       } else {
         // Enemy attacking player
         setEffectType("attack")
+
+        // Set damage text
+        setDamageText(`${attackDamage} damage`)
 
         // Animate enemy moving toward player
         const startTime = Date.now()
@@ -127,8 +155,16 @@ export function CombatVisualization({
             setEffectPosition({ x: originalPositions.current.player.x, y: originalPositions.current.player.y })
             setShowEffect(true)
             setEffectType("damage")
-          } else {
+
+            // Show damage text
+            setDamageTextPosition({
+              x: originalPositions.current.player.x,
+              y: originalPositions.current.player.y - 50,
+            })
+            setShowDamageText(true)
+          } else if (progress > 0.8) {
             setShowEffect(false)
+            setShowDamageText(false)
           }
 
           if (progress < 1) {
@@ -137,6 +173,7 @@ export function CombatVisualization({
             // Reset positions
             setEnemyPosition(originalPositions.current.enemy)
             setShowEffect(false)
+            setShowDamageText(false)
             onAnimationComplete()
           }
         }
@@ -149,9 +186,18 @@ export function CombatVisualization({
       setEffectPosition(isPlayerTurn ? playerPosition : enemyPosition)
       setShowEffect(true)
 
+      // Set defend text
+      setDamageText("Defending!")
+      setDamageTextPosition({
+        x: isPlayerTurn ? playerPosition.x : enemyPosition.x,
+        y: (isPlayerTurn ? playerPosition.y : enemyPosition.y) - 50,
+      })
+      setShowDamageText(true)
+
       // Show defend effect for a short time
       const timer = setTimeout(() => {
         setShowEffect(false)
+        setShowDamageText(false)
         onAnimationComplete()
       }, 1000)
 
@@ -161,7 +207,7 @@ export function CombatVisualization({
     return () => {
       cancelAnimationFrame(animationRef.current)
     }
-  }, [isAttacking, isDefending, isPlayerTurn, onAnimationComplete])
+  }, [isAttacking, isDefending, isPlayerTurn, onAnimationComplete, attackDamage, isCritical, skillName])
 
   // Draw the combat scene
   useEffect(() => {
@@ -244,6 +290,27 @@ export function CombatVisualization({
       }
     }
 
+    // Draw damage text
+    if (showDamageText) {
+      ctx.font = "bold 16px sans-serif"
+      ctx.textAlign = "center"
+
+      // Draw text with outline for better visibility
+      if (isCritical) {
+        ctx.fillStyle = "#ff0000"
+      } else {
+        ctx.fillStyle = "#ffffff"
+      }
+
+      // Draw text shadow/outline
+      ctx.strokeStyle = "#000000"
+      ctx.lineWidth = 3
+      ctx.strokeText(damageText, damageTextPosition.x, damageTextPosition.y)
+
+      // Draw text
+      ctx.fillText(damageText, damageTextPosition.x, damageTextPosition.y)
+    }
+
     // Draw arena floor
     ctx.fillStyle = "#1e2a3a"
     ctx.fillRect(50, 230, 300, 20)
@@ -257,6 +324,10 @@ export function CombatVisualization({
     effectType,
     playerName,
     enemyName,
+    showDamageText,
+    damageText,
+    damageTextPosition,
+    isCritical,
   ])
 
   return (

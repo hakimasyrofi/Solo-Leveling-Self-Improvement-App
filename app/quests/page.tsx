@@ -187,9 +187,9 @@ function QuestCard({
     <Card className={`bg-[#0a0e14]/80 border-[#1e2a3a] relative ${quest.completed ? "opacity-70" : ""}`}>
       <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
       <CardHeader className="pb-2 relative z-10">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <div className="flex items-center">
+            <div className="flex items-center mb-1">
               <CardTitle className="text-base">{quest.title}</CardTitle>
               {quest.isCustom && (
                 <span className="ml-2 text-xs bg-[#1e2a3a] text-[#8bacc1] px-2 py-0.5 rounded-full">Custom</span>
@@ -197,7 +197,7 @@ function QuestCard({
             </div>
             <CardDescription>{quest.description}</CardDescription>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mt-2 sm:mt-0">
             <div
               className={`${difficultyColors[quest.difficulty]} w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold`}
             >

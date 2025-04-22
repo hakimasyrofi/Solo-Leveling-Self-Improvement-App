@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import Link from "next/link"
 import { ChevronLeft, Search, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -248,15 +250,24 @@ function QuestCard({
           )}
         </div>
 
-        {/* Delete button for all quests */}
+        {/* Delete button for all quests - icon only */}
         {onDelete && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="bg-red-900 hover:bg-red-800">
-                <Trash2 className="h-4 w-4 mr-2" /> Delete
+              <Button variant="destructive" size="icon" className="bg-red-900 hover:bg-red-800">
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Delete</span>
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff]">
+            <AlertDialogContent
+              className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff] w-[90%] sm:max-w-md animate-solo-modal"
+              style={
+                {
+                  "--solo-expand-duration": "0.5s",
+                  "--solo-expand-easing": "cubic-bezier(0.16, 1, 0.3, 1)",
+                } as React.CSSProperties
+              }
+            >
               <AlertDialogHeader>
                 <AlertDialogTitle className="text-[#4cc9ff]">Delete Quest</AlertDialogTitle>
                 <AlertDialogDescription className="text-[#8bacc1]">

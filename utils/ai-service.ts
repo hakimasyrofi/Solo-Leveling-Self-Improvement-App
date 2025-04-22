@@ -82,10 +82,11 @@ const generateQuestWithOpenAI = async (description: string): Promise<AIQuestData
             role: "system",
             content: `You are an AI assistant for a Solo Leveling themed self-improvement app. 
             The user will provide a quest description, and you need to generate appropriate quest data.
+            Your main task is to correct any grammar or typos in the title and description while preserving the original meaning.
             Format your response as a valid JSON object with the following structure:
             {
-              "title": "Short, catchy title for the quest",
-              "description": "Refined, motivational description of the quest",
+              "title": "Corrected title (keep it close to original)",
+              "description": "Corrected description (keep it close to original)",
               "difficulty": "One of: S, A, B, C, D, E (S is hardest, E is easiest)",
               "expiry": "One of: Daily, Weekly, Monthly, One-time",
               "expReward": number (10-500 based on difficulty),
@@ -108,8 +109,8 @@ const generateQuestWithOpenAI = async (description: string): Promise<AIQuestData
             }
             Analyze the description to determine appropriate stats to reward based on the activity.
             For example, physical activities should reward STR and VIT, mental activities should reward INT and PER, etc.
-            The difficulty should be based on how challenging the task seems.
-            Only include 1-2 item rewards for difficult quests (S, A, B), and none for easier quests.`,
+The difficulty should be based on how challenging the task seems.
+Only include 1-2 item rewards for difficult quests (S, A, B), and none for easier quests.`,
           },
           {
             role: "user",
@@ -166,10 +167,11 @@ const generateQuestWithGemini = async (description: string): Promise<AIQuestData
                 {
                   text: `You are an AI assistant for a Solo Leveling themed self-improvement app. 
                 I will provide a quest description, and you need to generate appropriate quest data.
+                Your main task is to correct any grammar or typos in the title and description while preserving the original meaning.
                 Format your response as a valid JSON object with the following structure:
                 {
-                  "title": "Short, catchy title for the quest",
-                  "description": "Refined, motivational description of the quest",
+                  "title": "Corrected title (keep it close to original)",
+                  "description": "Corrected description (keep it close to original)",
                   "difficulty": "One of: S, A, B, C, D, E (S is hardest, E is easiest)",
                   "expiry": "One of: Daily, Weekly, Monthly, One-time",
                   "expReward": number (10-500 based on difficulty),

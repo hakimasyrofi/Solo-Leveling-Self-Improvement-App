@@ -20,13 +20,27 @@ export function NameInputModal() {
   const { userStats, setUserStats } = useUser()
   const [open, setOpen] = useState(false)
   const [name, setName] = useState("")
+  const [hasCheckedStorage, setHasCheckedStorage] = useState(false)
 
   // Check if name is empty on component mount
   useEffect(() => {
-    if (!userStats.name) {
-      setOpen(true)
+    // Only check once to prevent reopening after saving
+    if (!hasCheckedStorage) {
+      // Check localStorage directly to avoid race conditions with context loading
+      const storedStats = localStorage.getItem("soloLevelUpUserStats")
+      let shouldOpen = false
+
+      if (storedStats) {
+        const parsedStats = JSON.parse(storedStats)
+        shouldOpen = !parsedStats.name || parsedStats.name.trim() === ""
+      } else {
+        shouldOpen = true
+      }
+
+      setOpen(shouldOpen)
+      setHasCheckedStorage(true)
     }
-  }, [userStats.name])
+  }, [hasCheckedStorage, userStats.name])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,7 +55,15 @@ export function NameInputModal() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff]">
+      <DialogContent
+        className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff] w-[90%] sm:max-w-md animate-solo-modal"
+        style={
+          {
+            "--solo-expand-duration": "0.5s",
+            "--solo-expand-easing": "cubic-bezier(0.16, 1, 0.3, 1)",
+          } as React.CSSProperties
+        }
+      >
         <DialogHeader>
           <DialogTitle className="text-[#4cc9ff]">Welcome, Hunter</DialogTitle>
           <DialogDescription className="text-[#8bacc1]">

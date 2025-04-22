@@ -61,7 +61,15 @@ export function APIKeyModal({ open, onOpenChange, onKeySubmit }: APIKeyModalProp
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff]">
+      <DialogContent
+        className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff] w-[90%] sm:max-w-md animate-solo-modal"
+        style={
+          {
+            "--solo-expand-duration": "0.5s",
+            "--solo-expand-easing": "cubic-bezier(0.16, 1, 0.3, 1)",
+          } as React.CSSProperties
+        }
+      >
         <DialogHeader>
           <DialogTitle className="text-[#4cc9ff]">AI API Key Required</DialogTitle>
           <DialogDescription className="text-[#8bacc1]">

@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Heart, Zap, Info } from "lucide-react"
+import { useState, useEffect, useRef } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Heart, Zap, Info } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,32 +12,32 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 interface CombatVisualizationProps {
-  playerName: string
-  enemyName: string
-  isPlayerTurn: boolean
-  isAttacking: boolean
-  isDefending: boolean
-  attackDamage?: number
-  isCritical?: boolean
-  skillName?: string
-  playerHp: number
-  playerMaxHp: number
-  playerMp: number
-  playerMaxMp: number
-  playerLevel: number
-  enemyHp: number
-  enemyMaxHp: number
+  playerName: string;
+  enemyName: string;
+  isPlayerTurn: boolean;
+  isAttacking: boolean;
+  isDefending: boolean;
+  attackDamage?: number;
+  isCritical?: boolean;
+  skillName?: string;
+  playerHp: number;
+  playerMaxHp: number;
+  playerMp: number;
+  playerMaxMp: number;
+  playerLevel: number;
+  enemyHp: number;
+  enemyMaxHp: number;
   playerStats: {
-    str: number
-    agi: number
-    per: number
-    int: number
-    vit: number
-  }
-  onAnimationComplete: () => void
+    str: number;
+    agi: number;
+    per: number;
+    int: number;
+    vit: number;
+  };
+  onAnimationComplete: () => void;
 }
 
 export function CombatVisualization({
@@ -59,230 +59,163 @@ export function CombatVisualization({
   playerStats,
   onAnimationComplete,
 }: CombatVisualizationProps) {
-  const [playerPosition, setPlayerPosition] = useState({ x: 100, y: 200 })
-  const [enemyPosition, setEnemyPosition] = useState({ x: 300, y: 200 })
-  const [playerColor, setPlayerColor] = useState("#4cc9ff")
-  const [enemyColor, setEnemyColor] = useState("#ff4c4c")
-  const [effectPosition, setEffectPosition] = useState({ x: 0, y: 0 })
-  const [showEffect, setShowEffect] = useState(false)
-  const [effectType, setEffectType] = useState<"attack" | "defend" | "damage">("attack")
-  const [damageText, setDamageText] = useState("")
-  const [showDamageText, setShowDamageText] = useState(false)
-  const [damageTextPosition, setDamageTextPosition] = useState({ x: 0, y: 0 })
-  const [showStatsDialog, setShowStatsDialog] = useState(false)
-  const [combatMessage, setCombatMessage] = useState("")
-  const [showCombatMessage, setShowCombatMessage] = useState(false)
+  const [playerPosition] = useState({ x: 100, y: 200 });
+  const [enemyPosition] = useState({ x: 300, y: 200 });
+  const [playerColor, setPlayerColor] = useState("#4cc9ff");
+  const [enemyColor, setEnemyColor] = useState("#ff4c4c");
+  const [effectPosition, setEffectPosition] = useState({ x: 0, y: 0 });
+  const [showEffect, setShowEffect] = useState(false);
+  const [effectType, setEffectType] = useState<"attack" | "defend" | "damage">(
+    "attack"
+  );
+  const [damageText, setDamageText] = useState("");
+  const [showDamageText, setShowDamageText] = useState(false);
+  const [damageTextPosition, setDamageTextPosition] = useState({ x: 0, y: 0 });
+  const [showStatsDialog, setShowStatsDialog] = useState(false);
+  const [combatMessage, setCombatMessage] = useState("");
+  const [showCombatMessage, setShowCombatMessage] = useState(false);
 
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const animationRef = useRef<number>(0)
-  const originalPositions = useRef({ player: { x: 100, y: 200 }, enemy: { x: 300, y: 200 } })
-  const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationRef = useRef<number>(0);
+  const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Animation logic
   useEffect(() => {
     if (isAttacking) {
       // Determine who is attacking and who is receiving
-      const isPlayerAttacking = isPlayerTurn
+      const isPlayerAttacking = isPlayerTurn;
 
       // Set combat message
       if (isPlayerAttacking) {
         if (skillName) {
-          setCombatMessage(`You used ${skillName} for ${attackDamage} damage${isCritical ? " (Critical!)" : ""}!`)
+          setCombatMessage(
+            `You used ${skillName} for ${attackDamage} damage${
+              isCritical ? " (Critical!)" : ""
+            }!`
+          );
         } else {
-          setCombatMessage(`You attacked for ${attackDamage} damage${isCritical ? " (Critical!)" : ""}!`)
+          setCombatMessage(
+            `You attacked for ${attackDamage} damage${
+              isCritical ? " (Critical!)" : ""
+            }!`
+          );
         }
       } else {
-        setCombatMessage(`${enemyName} attacked you for ${attackDamage} damage!`)
+        setCombatMessage(
+          `${enemyName} attacked you for ${attackDamage} damage!`
+        );
       }
-      setShowCombatMessage(true)
+      setShowCombatMessage(true);
 
       // Clear any existing timeout
       if (messageTimeoutRef.current) {
-        clearTimeout(messageTimeoutRef.current)
+        clearTimeout(messageTimeoutRef.current);
       }
 
       // Set timeout to hide message
       messageTimeoutRef.current = setTimeout(() => {
-        setShowCombatMessage(false)
-      }, 3000)
+        setShowCombatMessage(false);
+      }, 2000);
 
       if (isPlayerAttacking) {
-        // Player attacking enemy
-        setEffectType("attack")
+        // Player attacking enemy - static effect at enemy position
+        setEffectType("damage");
+        setEffectPosition({ x: enemyPosition.x, y: enemyPosition.y });
+        setShowEffect(true);
 
         // Set damage text
         if (skillName) {
-          setDamageText(`${skillName}! ${attackDamage}${isCritical ? " CRIT!" : ""}`)
+          setDamageText(
+            `${skillName}! ${attackDamage}${isCritical ? " CRIT!" : ""}`
+          );
         } else {
-          setDamageText(`${attackDamage}${isCritical ? " CRIT!" : ""}`)
+          setDamageText(`${attackDamage}${isCritical ? " CRIT!" : ""}`);
         }
 
-        // Animate player moving toward enemy
-        const startTime = Date.now()
-        const duration = 500 // ms
-        const animate = () => {
-          const elapsed = Date.now() - startTime
-          const progress = Math.min(elapsed / duration, 1)
+        // Show damage text
+        setDamageTextPosition({
+          x: enemyPosition.x,
+          y: enemyPosition.y - 50,
+        });
+        setShowDamageText(true);
 
-          // Move player toward enemy
-          if (progress < 0.5) {
-            // Moving toward
-            setPlayerPosition({
-              x:
-                originalPositions.current.player.x +
-                (originalPositions.current.enemy.x - originalPositions.current.player.x) * progress * 0.6,
-              y: originalPositions.current.player.y,
-            })
-          } else {
-            // Moving back
-            const returnProgress = (progress - 0.5) * 2
-            setPlayerPosition({
-              x:
-                originalPositions.current.enemy.x * 0.6 +
-                originalPositions.current.player.x * (1 - 0.6) -
-                (originalPositions.current.enemy.x - originalPositions.current.player.x) * returnProgress * 0.6,
-              y: originalPositions.current.player.y,
-            })
-          }
+        // Show effect for a short time
+        const timer = setTimeout(() => {
+          setShowEffect(false);
+          setShowDamageText(false);
+          onAnimationComplete();
+        }, 800);
 
-          // Show attack effect when player reaches enemy
-          if (progress >= 0.4 && progress <= 0.6) {
-            setEffectPosition({ x: originalPositions.current.enemy.x, y: originalPositions.current.enemy.y })
-            setShowEffect(true)
-            setEffectType("damage")
-
-            // Show damage text
-            setDamageTextPosition({
-              x: originalPositions.current.enemy.x,
-              y: originalPositions.current.enemy.y - 50,
-            })
-            setShowDamageText(true)
-          } else if (progress > 0.8) {
-            setShowEffect(false)
-            setShowDamageText(false)
-          }
-
-          if (progress < 1) {
-            animationRef.current = requestAnimationFrame(animate)
-          } else {
-            // Reset positions
-            setPlayerPosition(originalPositions.current.player)
-            setShowEffect(false)
-            setShowDamageText(false)
-            onAnimationComplete()
-          }
-        }
-
-        animationRef.current = requestAnimationFrame(animate)
+        return () => clearTimeout(timer);
       } else {
-        // Enemy attacking player
-        setEffectType("attack")
+        // Enemy attacking player - static effect at player position
+        setEffectType("damage");
+        setEffectPosition({ x: playerPosition.x, y: playerPosition.y });
+        setShowEffect(true);
 
         // Set damage text
-        setDamageText(`${attackDamage}`)
+        setDamageText(`${attackDamage}`);
 
-        // Animate enemy moving toward player
-        const startTime = Date.now()
-        const duration = 500 // ms
-        const animate = () => {
-          const elapsed = Date.now() - startTime
-          const progress = Math.min(elapsed / duration, 1)
+        // Show damage text
+        setDamageTextPosition({
+          x: playerPosition.x,
+          y: playerPosition.y - 50,
+        });
+        setShowDamageText(true);
 
-          // Move enemy toward player
-          if (progress < 0.5) {
-            // Moving toward
-            setEnemyPosition({
-              x:
-                originalPositions.current.enemy.x -
-                (originalPositions.current.enemy.x - originalPositions.current.player.x) * progress * 0.6,
-              y: originalPositions.current.enemy.y,
-            })
-          } else {
-            // Moving back
-            const returnProgress = (progress - 0.5) * 2
-            setEnemyPosition({
-              x:
-                originalPositions.current.player.x * 0.6 +
-                originalPositions.current.enemy.x * (1 - 0.6) +
-                (originalPositions.current.enemy.x - originalPositions.current.player.x) * returnProgress * 0.6,
-              y: originalPositions.current.enemy.y,
-            })
-          }
+        // Show effect for a short time
+        const timer = setTimeout(() => {
+          setShowEffect(false);
+          setShowDamageText(false);
+          onAnimationComplete();
+        }, 800);
 
-          // Show attack effect when enemy reaches player
-          if (progress >= 0.4 && progress <= 0.6) {
-            setEffectPosition({ x: originalPositions.current.player.x, y: originalPositions.current.player.y })
-            setShowEffect(true)
-            setEffectType("damage")
-
-            // Show damage text
-            setDamageTextPosition({
-              x: originalPositions.current.player.x,
-              y: originalPositions.current.player.y - 50,
-            })
-            setShowDamageText(true)
-          } else if (progress > 0.8) {
-            setShowEffect(false)
-            setShowDamageText(false)
-          }
-
-          if (progress < 1) {
-            animationRef.current = requestAnimationFrame(animate)
-          } else {
-            // Reset positions
-            setEnemyPosition(originalPositions.current.enemy)
-            setShowEffect(false)
-            setShowDamageText(false)
-            onAnimationComplete()
-          }
-        }
-
-        animationRef.current = requestAnimationFrame(animate)
+        return () => clearTimeout(timer);
       }
     } else if (isDefending) {
       // Defending animation
-      setEffectType("defend")
-      setEffectPosition(isPlayerTurn ? playerPosition : enemyPosition)
-      setShowEffect(true)
+      setEffectType("defend");
+      setEffectPosition(isPlayerTurn ? playerPosition : enemyPosition);
+      setShowEffect(true);
 
       // Set defend text
-      setDamageText("Defending!")
+      setDamageText("Defending!");
       setDamageTextPosition({
         x: isPlayerTurn ? playerPosition.x : enemyPosition.x,
         y: (isPlayerTurn ? playerPosition.y : enemyPosition.y) - 50,
-      })
-      setShowDamageText(true)
+      });
+      setShowDamageText(true);
 
       // Set combat message
-      setCombatMessage("You are defending! Damage reduced by 50%")
-      setShowCombatMessage(true)
+      setCombatMessage("You are defending! Damage reduced by 50%");
+      setShowCombatMessage(true);
 
       // Clear any existing timeout
       if (messageTimeoutRef.current) {
-        clearTimeout(messageTimeoutRef.current)
+        clearTimeout(messageTimeoutRef.current);
       }
 
       // Set timeout to hide message
       messageTimeoutRef.current = setTimeout(() => {
-        setShowCombatMessage(false)
-      }, 3000)
+        setShowCombatMessage(false);
+      }, 2000);
 
       // Show defend effect for a short time
       const timer = setTimeout(() => {
-        setShowEffect(false)
-        setShowDamageText(false)
-        onAnimationComplete()
-      }, 1000)
+        setShowEffect(false);
+        setShowDamageText(false);
+        onAnimationComplete();
+      }, 500);
 
-      return () => clearTimeout(timer)
+      return () => clearTimeout(timer);
     }
 
     return () => {
-      cancelAnimationFrame(animationRef.current)
+      cancelAnimationFrame(animationRef.current);
       if (messageTimeoutRef.current) {
-        clearTimeout(messageTimeoutRef.current)
+        clearTimeout(messageTimeoutRef.current);
       }
-    }
+    };
   }, [
     isAttacking,
     isDefending,
@@ -294,113 +227,116 @@ export function CombatVisualization({
     enemyName,
     playerPosition,
     enemyPosition,
-  ])
+  ]);
 
   // Draw the combat scene
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
     // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw background
-    ctx.fillStyle = "#0a0e14"
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = "#0a0e14";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw player
-    ctx.fillStyle = playerColor
-    ctx.beginPath()
-    ctx.arc(playerPosition.x, playerPosition.y, 20, 0, Math.PI * 2)
-    ctx.fill()
+    ctx.fillStyle = playerColor;
+    ctx.beginPath();
+    ctx.arc(playerPosition.x, playerPosition.y, 20, 0, Math.PI * 2);
+    ctx.fill();
 
     // Draw player name
-    ctx.fillStyle = "#e0f2ff"
-    ctx.font = "14px sans-serif"
-    ctx.textAlign = "center"
-    ctx.fillText(playerName, playerPosition.x, playerPosition.y - 30)
+    ctx.fillStyle = "#e0f2ff";
+    ctx.font = "14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(playerName, playerPosition.x, playerPosition.y - 30);
 
     // Draw enemy
-    ctx.fillStyle = enemyColor
-    ctx.beginPath()
-    ctx.arc(enemyPosition.x, enemyPosition.y, 20, 0, Math.PI * 2)
-    ctx.fill()
+    ctx.fillStyle = enemyColor;
+    ctx.beginPath();
+    ctx.arc(enemyPosition.x, enemyPosition.y, 20, 0, Math.PI * 2);
+    ctx.fill();
 
     // Draw enemy name
-    ctx.fillStyle = "#e0f2ff"
-    ctx.font = "14px sans-serif"
-    ctx.textAlign = "center"
-    ctx.fillText(enemyName, enemyPosition.x, enemyPosition.y - 30)
+    ctx.fillStyle = "#e0f2ff";
+    ctx.font = "14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(enemyName, enemyPosition.x, enemyPosition.y - 30);
 
     // Draw effect if needed
     if (showEffect) {
       if (effectType === "attack") {
         // Draw slash effect
-        ctx.strokeStyle = "#ffffff"
-        ctx.lineWidth = 3
-        ctx.beginPath()
-        ctx.moveTo(effectPosition.x - 15, effectPosition.y - 15)
-        ctx.lineTo(effectPosition.x + 15, effectPosition.y + 15)
-        ctx.stroke()
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(effectPosition.x - 15, effectPosition.y - 15);
+        ctx.lineTo(effectPosition.x + 15, effectPosition.y + 15);
+        ctx.stroke();
 
-        ctx.beginPath()
-        ctx.moveTo(effectPosition.x + 15, effectPosition.y - 15)
-        ctx.lineTo(effectPosition.x - 15, effectPosition.y + 15)
-        ctx.stroke()
+        ctx.beginPath();
+        ctx.moveTo(effectPosition.x + 15, effectPosition.y - 15);
+        ctx.lineTo(effectPosition.x - 15, effectPosition.y + 15);
+        ctx.stroke();
       } else if (effectType === "defend") {
         // Draw shield effect
-        ctx.strokeStyle = "#4cc9ff"
-        ctx.lineWidth = 3
-        ctx.beginPath()
-        ctx.arc(effectPosition.x, effectPosition.y, 25, 0, Math.PI * 2)
-        ctx.stroke()
+        ctx.strokeStyle = "#4cc9ff";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(effectPosition.x, effectPosition.y, 25, 0, Math.PI * 2);
+        ctx.stroke();
       } else if (effectType === "damage") {
         // Draw damage effect
-        ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
-        ctx.beginPath()
-        ctx.arc(effectPosition.x, effectPosition.y, 25, 0, Math.PI * 2)
-        ctx.fill()
+        ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+        ctx.beginPath();
+        ctx.arc(effectPosition.x, effectPosition.y, 25, 0, Math.PI * 2);
+        ctx.fill();
 
         // Draw impact lines
-        ctx.strokeStyle = "#ff4c4c"
-        ctx.lineWidth = 2
+        ctx.strokeStyle = "#ff4c4c";
+        ctx.lineWidth = 2;
         for (let i = 0; i < 8; i++) {
-          const angle = ((Math.PI * 2) / 8) * i
-          ctx.beginPath()
-          ctx.moveTo(effectPosition.x, effectPosition.y)
-          ctx.lineTo(effectPosition.x + Math.cos(angle) * 30, effectPosition.y + Math.sin(angle) * 30)
-          ctx.stroke()
+          const angle = ((Math.PI * 2) / 8) * i;
+          ctx.beginPath();
+          ctx.moveTo(effectPosition.x, effectPosition.y);
+          ctx.lineTo(
+            effectPosition.x + Math.cos(angle) * 30,
+            effectPosition.y + Math.sin(angle) * 30
+          );
+          ctx.stroke();
         }
       }
     }
 
     // Draw damage text
     if (showDamageText) {
-      ctx.font = "bold 16px sans-serif"
-      ctx.textAlign = "center"
+      ctx.font = "bold 16px sans-serif";
+      ctx.textAlign = "center";
 
       // Draw text with outline for better visibility
       if (isCritical) {
-        ctx.fillStyle = "#ff0000"
+        ctx.fillStyle = "#ff0000";
       } else {
-        ctx.fillStyle = "#ffffff"
+        ctx.fillStyle = "#ffffff";
       }
 
       // Draw text shadow/outline
-      ctx.strokeStyle = "#000000"
-      ctx.lineWidth = 3
-      ctx.strokeText(damageText, damageTextPosition.x, damageTextPosition.y)
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 3;
+      ctx.strokeText(damageText, damageTextPosition.x, damageTextPosition.y);
 
       // Draw text
-      ctx.fillText(damageText, damageTextPosition.x, damageTextPosition.y)
+      ctx.fillText(damageText, damageTextPosition.x, damageTextPosition.y);
     }
 
     // Draw arena floor
-    ctx.fillStyle = "#1e2a3a"
-    ctx.fillRect(50, 230, 300, 20)
+    ctx.fillStyle = "#1e2a3a";
+    ctx.fillRect(50, 230, 300, 20);
   }, [
     playerPosition,
     enemyPosition,
@@ -415,7 +351,7 @@ export function CombatVisualization({
     damageText,
     damageTextPosition,
     isCritical,
-  ])
+  ]);
 
   return (
     <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative">
@@ -433,7 +369,10 @@ export function CombatVisualization({
               </div>
               <span className="text-xs">Lv.{playerLevel}</span>
             </div>
-            <Progress value={(playerHp / playerMaxHp) * 100} className="h-2 bg-[#1e2a3a]">
+            <Progress
+              value={(playerHp / playerMaxHp) * 100}
+              className="h-2 bg-[#1e2a3a]"
+            >
               <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
             </Progress>
             <div className="flex items-center justify-between mt-1">
@@ -452,8 +391,12 @@ export function CombatVisualization({
                 </DialogTrigger>
                 <DialogContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff]">
                   <DialogHeader>
-                    <DialogTitle className="text-[#4cc9ff]">Player Stats</DialogTitle>
-                    <DialogDescription className="text-[#8bacc1]">Detailed stats for {playerName}</DialogDescription>
+                    <DialogTitle className="text-[#4cc9ff]">
+                      Player Stats
+                    </DialogTitle>
+                    <DialogDescription className="text-[#8bacc1]">
+                      Detailed stats for {playerName}
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="grid grid-cols-2 gap-4 py-4">
                     <div className="flex items-center">
@@ -484,7 +427,9 @@ export function CombatVisualization({
           <div className="w-8"></div>
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs">Lv.{enemyName.includes("Lv") ? "" : ""}</span>
+              <span className="text-xs">
+                Lv.{enemyName.includes("Lv") ? "" : ""}
+              </span>
               <div className="flex items-center">
                 <Heart className="h-3 w-3 text-red-400 mr-1" />
                 <span className="text-xs">
@@ -492,7 +437,10 @@ export function CombatVisualization({
                 </span>
               </div>
             </div>
-            <Progress value={(enemyHp / enemyMaxHp) * 100} className="h-2 bg-[#1e2a3a]">
+            <Progress
+              value={(enemyHp / enemyMaxHp) * 100}
+              className="h-2 bg-[#1e2a3a]"
+            >
               <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
             </Progress>
           </div>
@@ -505,9 +453,14 @@ export function CombatVisualization({
           </div>
         )}
         <div className="flex justify-center">
-          <canvas ref={canvasRef} width={400} height={300} className="border border-[#1e2a3a] rounded-md" />
+          <canvas
+            ref={canvasRef}
+            width={400}
+            height={300}
+            className="border border-[#1e2a3a] rounded-md"
+          />
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

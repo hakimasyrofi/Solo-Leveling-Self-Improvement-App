@@ -631,117 +631,91 @@ export default function CombatPage() {
             )}
           </div>
 
-          {/* Right Column - Player Stats */}
-          <div className="lg:col-span-1">
-            <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative h-full">
-              <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
-              <CardHeader className="pb-2 relative z-10">
-                <CardTitle className="text-[#4cc9ff]">Your Stats</CardTitle>
-                <CardDescription>
-                  Level {userStats.level} Hunter
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                {/* HP/MP Bars */}
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="flex items-center">
-                        <Heart className="h-3 w-3 text-red-400 mr-1" />
-                        <span>HP</span>
-                      </span>
-                      <span>
-                        {playerHp}/{userStats.maxHp}
-                      </span>
-                    </div>
-                    <Progress
-                      value={(playerHp / userStats.maxHp) * 100}
-                      className="h-2 bg-[#1e2a3a]"
-                    >
-                      <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
-                    </Progress>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="flex items-center">
-                        <Zap className="h-3 w-3 text-blue-400 mr-1" />
-                        <span>MP</span>
-                      </span>
-                      <span>
-                        {playerMp}/{userStats.maxMp}
-                      </span>
-                    </div>
-                    <Progress
-                      value={(playerMp / userStats.maxMp) * 100}
-                      className="h-2 bg-[#1e2a3a]"
-                    >
-                      <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" />
-                    </Progress>
-                  </div>
-                </div>
-
-                <Separator className="my-4 bg-[#1e2a3a]" />
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-y-2 text-sm">
-                  <div className="flex items-center">
-                    <Sword className="h-4 w-4 text-[#4cc9ff] mr-2" />
-                    <span className="text-[#8bacc1] mr-1">STR:</span>
-                    <span>{userStats.stats.str}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Shield className="h-4 w-4 text-[#4cc9ff] mr-2" />
-                    <span className="text-[#8bacc1] mr-1">VIT:</span>
-                    <span>{userStats.stats.vit}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Zap className="h-4 w-4 text-[#4cc9ff] mr-2" />
-                    <span className="text-[#8bacc1] mr-1">AGI:</span>
-                    <span>{userStats.stats.agi}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Brain className="h-4 w-4 text-[#4cc9ff] mr-2" />
-                    <span className="text-[#8bacc1] mr-1">INT:</span>
-                    <span>{userStats.stats.int}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Eye className="h-4 w-4 text-[#4cc9ff] mr-2" />
-                    <span className="text-[#8bacc1] mr-1">PER:</span>
-                    <span>{userStats.stats.per}</span>
-                  </div>
-                </div>
-
-                {inCombat && (
-                  <>
-                    <Separator className="my-4 bg-[#1e2a3a]" />
-
-                    {/* Combat Status */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-[#8bacc1]">Status:</span>
-                        <Badge
-                          className={playerTurn ? "bg-green-700" : "bg-red-700"}
-                        >
-                          {playerTurn ? "Your Turn" : "Enemy Turn"}
-                        </Badge>
+          {/* Right Column - Player Stats (hidden during combat) */}
+          {!inCombat && (
+            <div className="lg:col-span-1">
+              <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative h-full">
+                <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
+                <CardHeader className="pb-2 relative z-10">
+                  <CardTitle className="text-[#4cc9ff]">Your Stats</CardTitle>
+                  <CardDescription>
+                    Level {userStats.level} Hunter
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="relative z-10">
+                  {/* HP/MP Bars */}
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="flex items-center">
+                          <Heart className="h-3 w-3 text-red-400 mr-1" />
+                          <span>HP</span>
+                        </span>
+                        <span>
+                          {playerHp}/{userStats.maxHp}
+                        </span>
                       </div>
-                      {isDefending && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-[#8bacc1]">
-                            Defending:
-                          </span>
-                          <Badge className="bg-blue-700">
-                            50% Damage Reduction
-                          </Badge>
-                        </div>
-                      )}
+                      <Progress
+                        value={(playerHp / userStats.maxHp) * 100}
+                        className="h-2 bg-[#1e2a3a]"
+                      >
+                        <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
+                      </Progress>
                     </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="flex items-center">
+                          <Zap className="h-3 w-3 text-blue-400 mr-1" />
+                          <span>MP</span>
+                        </span>
+                        <span>
+                          {playerMp}/{userStats.maxMp}
+                        </span>
+                      </div>
+                      <Progress
+                        value={(playerMp / userStats.maxMp) * 100}
+                        className="h-2 bg-[#1e2a3a]"
+                      >
+                        <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" />
+                      </Progress>
+                    </div>
+                  </div>
+
+                  <Separator className="my-4 bg-[#1e2a3a]" />
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-2 gap-y-2 text-sm">
+                    <div className="flex items-center">
+                      <Sword className="h-4 w-4 text-[#4cc9ff] mr-2" />
+                      <span className="text-[#8bacc1] mr-1">STR:</span>
+                      <span>{userStats.stats.str}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Shield className="h-4 w-4 text-[#4cc9ff] mr-2" />
+                      <span className="text-[#8bacc1] mr-1">VIT:</span>
+                      <span>{userStats.stats.vit}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Zap className="h-4 w-4 text-[#4cc9ff] mr-2" />
+                      <span className="text-[#8bacc1] mr-1">AGI:</span>
+                      <span>{userStats.stats.agi}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Brain className="h-4 w-4 text-[#4cc9ff] mr-2" />
+                      <span className="text-[#8bacc1] mr-1">INT:</span>
+                      <span>{userStats.stats.int}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Eye className="h-4 w-4 text-[#4cc9ff] mr-2" />
+                      <span className="text-[#8bacc1] mr-1">PER:</span>
+                      <span>{userStats.stats.per}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
 
         {/* Combat Actions */}

@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Heart, Zap, Info } from "lucide-react";
+import { Heart, Zap, Info, Shield } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -357,31 +358,68 @@ export function CombatVisualization({
     <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative">
       <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
       <CardContent className="p-4 relative z-10">
-        {/* Stats Bar */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center">
+        {/* Stats Bar with vertical alignment */}
+        <div className="flex flex-col gap-4 mb-4">
+          {/* Player and Enemy stats row */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Player side */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs">{playerName}</span>
+                <span className="text-xs">Lv.{playerLevel}</span>
+              </div>
+              <div className="flex items-center mb-1">
                 <Heart className="h-3 w-3 text-red-400 mr-1" />
-                <span className="text-xs">
+                <Progress
+                  value={(playerHp / playerMaxHp) * 100}
+                  className="h-2 bg-[#1e2a3a] flex-1"
+                >
+                  <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
+                </Progress>
+                <span className="text-xs ml-2">
                   {playerHp}/{playerMaxHp}
                 </span>
               </div>
-              <span className="text-xs">Lv.{playerLevel}</span>
-            </div>
-            <Progress
-              value={(playerHp / playerMaxHp) * 100}
-              className="h-2 bg-[#1e2a3a]"
-            >
-              <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
-            </Progress>
-            <div className="flex items-center justify-between mt-1">
               <div className="flex items-center">
                 <Zap className="h-3 w-3 text-blue-400 mr-1" />
-                <span className="text-xs">
+                <Progress
+                  value={(playerMp / playerMaxMp) * 100}
+                  className="h-2 bg-[#1e2a3a] flex-1"
+                >
+                  <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" />
+                </Progress>
+                <span className="text-xs ml-2">
                   {playerMp}/{playerMaxMp}
                 </span>
               </div>
+            </div>
+
+            {/* Enemy side */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs">{enemyName}</span>
+                <span className="text-xs">
+                  Lv.{enemyName.includes("Lv") ? "" : ""}
+                </span>
+              </div>
+              <div className="flex items-center mb-1">
+                <Heart className="h-3 w-3 text-red-400 mr-1" />
+                <Progress
+                  value={(enemyHp / enemyMaxHp) * 100}
+                  className="h-2 bg-[#1e2a3a] flex-1"
+                >
+                  <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
+                </Progress>
+                <span className="text-xs ml-2">
+                  {enemyHp}/{enemyMaxHp}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Turn Status row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
               <Dialog open={showStatsDialog} onOpenChange={setShowStatsDialog}>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -422,27 +460,21 @@ export function CombatVisualization({
                   </div>
                 </DialogContent>
               </Dialog>
+
+              {isDefending && (
+                <Badge className="bg-blue-700 text-xs flex items-center">
+                  <Shield className="h-3 w-3 mr-1" /> Defending
+                </Badge>
+              )}
             </div>
-          </div>
-          <div className="w-8"></div>
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs">
-                Lv.{enemyName.includes("Lv") ? "" : ""}
-              </span>
-              <div className="flex items-center">
-                <Heart className="h-3 w-3 text-red-400 mr-1" />
-                <span className="text-xs">
-                  {enemyHp}/{enemyMaxHp}
-                </span>
-              </div>
-            </div>
-            <Progress
-              value={(enemyHp / enemyMaxHp) * 100}
-              className="h-2 bg-[#1e2a3a]"
+
+            <Badge
+              className={`text-xs ${
+                isPlayerTurn ? "bg-green-700" : "bg-red-700"
+              }`}
             >
-              <div className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full" />
-            </Progress>
+              {isPlayerTurn ? "Your Turn" : "Enemy Turn"}
+            </Badge>
           </div>
         </div>
         {showCombatMessage && (

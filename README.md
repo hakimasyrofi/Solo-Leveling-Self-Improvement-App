@@ -4,7 +4,7 @@ _A gamified self-improvement application inspired by the "Solo Leveling" manhwa/
 
 ## Overview
 
-Solo Levelling is a gamified self-improvement application that transforms personal development into an immersive RPG experience. Set in a dark fantasy world, users can create custom quests, engage in combat, earn rewards, and level up their character as they achieve real-life goals.
+Solo Leveling - Self-Improvement App is a gamified self-improvement application that transforms personal development into an immersive RPG experience. Set in a dark fantasy world, users can create custom quests, engage in combat, earn rewards, and level up their character as they achieve real-life goals.
 
 The application uses a character-based progression system where completing tasks and defeating enemies rewards you with experience points, stat points, gold, and items, creating a rewarding feedback loop for self-improvement activities.
 

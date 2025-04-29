@@ -1,14 +1,20 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useUser } from "@/context/user-context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useEffect } from "react";
+import { useUser } from "@/context/user-context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -17,19 +23,24 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Plus, Trash2, Sparkles, Loader2 } from "lucide-react"
-import { APIKeyModal } from "@/components/api-key-modal"
-import { hasAPIKey, generateQuestData, getAIProvider } from "@/utils/ai-service"
-import { useToast } from "@/hooks/use-toast"
+} from "@/components/ui/dialog";
+import { Plus, Trash2, Sparkles, Loader2 } from "lucide-react";
+import { APIKeyModal } from "@/components/api-key-modal";
+import {
+  hasAPIKey,
+  generateQuestData,
+  getAIProvider,
+} from "@/utils/ai-service";
+import { useToast } from "@/hooks/use-toast";
+import { predefinedConsumables } from "@/data/items";
 
 export function AddQuestForm() {
-  const { addCustomQuest } = useUser()
-  const { toast } = useToast()
-  const [open, setOpen] = useState(false)
-  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false)
-  const [isGeneratingWithAI, setIsGeneratingWithAI] = useState(false)
-  const [hasAIKey, setHasAIKey] = useState(false)
+  const { addCustomQuest } = useUser();
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
+  const [isGeneratingWithAI, setIsGeneratingWithAI] = useState(false);
+  const [hasAIKey, setHasAIKey] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -43,28 +54,38 @@ export function AddQuestForm() {
     perReward: 0,
     intReward: 0,
     vitReward: 0,
-    itemRewards: [] as { name: string; type: string; description: string }[],
-  })
+    itemRewards: [] as {
+      id?: string;
+      name: string;
+      type: string;
+      description: string;
+    }[],
+  });
 
   // Check if AI API key exists on component mount
   useEffect(() => {
-    setHasAIKey(hasAPIKey())
-  }, [])
+    setHasAIKey(hasAPIKey());
+  }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name.includes("Reward") && name !== "expReward" ? Number.parseInt(value) || 0 : value,
-    }))
-  }
+      [name]:
+        name.includes("Reward") && name !== "expReward"
+          ? Number.parseInt(value) || 0
+          : value,
+    }));
+  };
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const addItemReward = () => {
     setFormData((prev) => ({
@@ -77,41 +98,50 @@ export function AddQuestForm() {
           description: "",
         },
       ],
-    }))
-  }
+    }));
+  };
 
   const removeItemReward = (index: number) => {
     setFormData((prev) => ({
       ...prev,
       itemRewards: prev.itemRewards.filter((_, i) => i !== index),
-    }))
-  }
+    }));
+  };
 
   const updateItemReward = (index: number, field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
-      itemRewards: prev.itemRewards.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
-    }))
-  }
+      itemRewards: prev.itemRewards.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      ),
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Calculate reward string based on stat rewards
-    const rewardParts = []
-    if (formData.goldReward > 0) rewardParts.push(`${formData.goldReward} Gold`)
-    if (formData.strReward > 0) rewardParts.push(`+${formData.strReward} Strength`)
-    if (formData.agiReward > 0) rewardParts.push(`+${formData.agiReward} Agility`)
-    if (formData.perReward > 0) rewardParts.push(`+${formData.perReward} Perception`)
-    if (formData.intReward > 0) rewardParts.push(`+${formData.intReward} Intelligence`)
-    if (formData.vitReward > 0) rewardParts.push(`+${formData.vitReward} Vitality`)
+    const rewardParts = [];
+    if (formData.goldReward > 0)
+      rewardParts.push(`${formData.goldReward} Gold`);
+    if (formData.strReward > 0)
+      rewardParts.push(`+${formData.strReward} Strength`);
+    if (formData.agiReward > 0)
+      rewardParts.push(`+${formData.agiReward} Agility`);
+    if (formData.perReward > 0)
+      rewardParts.push(`+${formData.perReward} Perception`);
+    if (formData.intReward > 0)
+      rewardParts.push(`+${formData.intReward} Intelligence`);
+    if (formData.vitReward > 0)
+      rewardParts.push(`+${formData.vitReward} Vitality`);
     if (formData.itemRewards.length > 0) {
       formData.itemRewards.forEach((item) => {
-        rewardParts.push(`${item.name} (${item.type})`)
-      })
+        rewardParts.push(`${item.name} (${item.type})`);
+      });
     }
 
-    const rewardString = rewardParts.length > 0 ? rewardParts.join(", ") : "Experience only"
+    const rewardString =
+      rewardParts.length > 0 ? rewardParts.join(", ") : "Experience only";
 
     // Create the quest object
     const newQuest = {
@@ -130,18 +160,49 @@ export function AddQuestForm() {
         int: formData.intReward,
         vit: formData.vitReward,
       },
-      itemRewards: formData.itemRewards.map((item, index) => ({
-        id: `custom-item-${Date.now()}-${index}`,
-        name: item.name,
-        type: item.type as any,
-        rarity: "Common",
-        description: item.description,
-        quantity: 1,
-      })),
-    }
+      itemRewards: formData.itemRewards.map((item, index) => {
+        // Check if it's a predefined consumable (has an id property)
+        if (item.id && predefinedConsumables.some((p) => p.id === item.id)) {
+          // Find the predefined consumable to get all its properties
+          const predefined = predefinedConsumables.find(
+            (p) => p.id === item.id
+          );
+          if (predefined) {
+            return {
+              id: predefined.id,
+              name: predefined.name,
+              type: predefined.type,
+              rarity: predefined.rarity as
+                | "Common"
+                | "Uncommon"
+                | "Rare"
+                | "Epic"
+                | "Legendary",
+              description: predefined.description,
+              quantity: 1,
+            };
+          }
+        }
+
+        // Default for custom items
+        return {
+          id: `custom-item-${Date.now()}-${index}`,
+          name: item.name,
+          type: item.type as any,
+          rarity: "Common" as
+            | "Common"
+            | "Uncommon"
+            | "Rare"
+            | "Epic"
+            | "Legendary",
+          description: item.description,
+          quantity: 1,
+        };
+      }),
+    };
 
     // Add the quest
-    addCustomQuest(newQuest)
+    addCustomQuest(newQuest);
 
     // Reset form and close dialog
     setFormData({
@@ -158,32 +219,33 @@ export function AddQuestForm() {
       intReward: 0,
       vitReward: 0,
       itemRewards: [],
-    })
-    setOpen(false)
-  }
+    });
+    setOpen(false);
+  };
 
   const handleGenerateWithAI = async () => {
     // Check if description is empty
     if (!formData.description.trim()) {
       toast({
         title: "Description Required",
-        description: "Please enter a quest description before using AI generation.",
+        description:
+          "Please enter a quest description before using AI generation.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     // Check if API key exists
     if (!hasAIKey) {
-      setApiKeyModalOpen(true)
-      return
+      setApiKeyModalOpen(true);
+      return;
     }
 
     // Generate quest data with AI
-    setIsGeneratingWithAI(true)
+    setIsGeneratingWithAI(true);
     try {
-      const questData = await generateQuestData(formData.description)
-      const provider = getAIProvider() || "AI"
+      const questData = await generateQuestData(formData.description);
+      const provider = getAIProvider() || "AI";
 
       // Update form data with AI-generated data, but keep the current expiry
       setFormData((prev) => ({
@@ -201,30 +263,32 @@ export function AddQuestForm() {
         intReward: questData.statRewards?.int || 0,
         vitReward: questData.statRewards?.vit || 0,
         itemRewards: questData.itemRewards || [],
-      }))
+      }));
 
       toast({
         title: `${provider} Generation Complete`,
-        description: "Quest details have been generated. Feel free to make any adjustments.",
-      })
+        description:
+          "Quest details have been generated. Feel free to make any adjustments.",
+      });
     } catch (error) {
       toast({
         title: "AI Generation Failed",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+        description:
+          error instanceof Error ? error.message : "An unknown error occurred",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsGeneratingWithAI(false)
+      setIsGeneratingWithAI(false);
     }
-  }
+  };
 
   const handleAPIKeySubmit = (provider: string) => {
-    setHasAIKey(true)
+    setHasAIKey(true);
     // Automatically trigger AI generation after API key is submitted
     setTimeout(() => {
-      handleGenerateWithAI()
-    }, 500)
-  }
+      handleGenerateWithAI();
+    }, 500);
+  };
 
   return (
     <>
@@ -244,7 +308,9 @@ export function AddQuestForm() {
           }
         >
           <DialogHeader>
-            <DialogTitle className="text-[#4cc9ff]">Create New Quest</DialogTitle>
+            <DialogTitle className="text-[#4cc9ff]">
+              Create New Quest
+            </DialogTitle>
             <DialogDescription className="text-[#8bacc1]">
               Add a new quest to track your real-life progress
             </DialogDescription>
@@ -299,7 +365,9 @@ export function AddQuestForm() {
                   <Label htmlFor="difficulty">Difficulty</Label>
                   <Select
                     value={formData.difficulty}
-                    onValueChange={(value) => handleSelectChange("difficulty", value)}
+                    onValueChange={(value) =>
+                      handleSelectChange("difficulty", value)
+                    }
                   >
                     <SelectTrigger className="bg-[#0a0e14] border-[#1e2a3a]">
                       <SelectValue placeholder="Select difficulty" />
@@ -316,7 +384,12 @@ export function AddQuestForm() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="expiry">Frequency</Label>
-                  <Select value={formData.expiry} onValueChange={(value) => handleSelectChange("expiry", value)}>
+                  <Select
+                    value={formData.expiry}
+                    onValueChange={(value) =>
+                      handleSelectChange("expiry", value)
+                    }
+                  >
                     <SelectTrigger className="bg-[#0a0e14] border-[#1e2a3a]">
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
@@ -459,7 +532,10 @@ export function AddQuestForm() {
                 {formData.itemRewards.length > 0 ? (
                   <div className="space-y-3">
                     {formData.itemRewards.map((item, index) => (
-                      <div key={index} className="grid gap-2 p-3 border border-[#1e2a3a] rounded-md relative">
+                      <div
+                        key={index}
+                        className="grid gap-2 p-3 border border-[#1e2a3a] rounded-md relative"
+                      >
                         <Button
                           type="button"
                           variant="ghost"
@@ -471,47 +547,95 @@ export function AddQuestForm() {
                           <span className="sr-only">Remove</span>
                         </Button>
                         <div>
-                          <Label htmlFor={`item-name-${index}`} className="text-xs">
+                          <Label
+                            htmlFor={`item-name-${index}`}
+                            className="text-xs"
+                          >
                             Item Name
                           </Label>
                           <Input
                             id={`item-name-${index}`}
                             value={item.name}
-                            onChange={(e) => updateItemReward(index, "name", e.target.value)}
+                            onChange={(e) =>
+                              updateItemReward(index, "name", e.target.value)
+                            }
                             className="bg-[#0a0e14] border-[#1e2a3a] h-8"
                             required
                           />
                         </div>
                         <div>
-                          <Label htmlFor={`item-type-${index}`} className="text-xs">
+                          <Label
+                            htmlFor={`item-type-${index}`}
+                            className="text-xs"
+                          >
                             Type
                           </Label>
-                          <Select value={item.type} onValueChange={(value) => updateItemReward(index, "type", value)}>
+                          <Select
+                            value={item.type}
+                            onValueChange={(value) =>
+                              updateItemReward(index, "type", value)
+                            }
+                          >
                             <SelectTrigger className="bg-[#0a0e14] border-[#1e2a3a] h-8">
                               <SelectValue placeholder="Select type" />
                             </SelectTrigger>
                             <SelectContent className="bg-[#0a0e14] border-[#1e2a3a]">
                               <SelectItem value="Material">Material</SelectItem>
-                              <SelectItem value="Consumable">Consumable</SelectItem>
+                              <SelectItem value="Consumable">
+                                Consumable
+                              </SelectItem>
                               <SelectItem value="Weapon">Weapon</SelectItem>
                               <SelectItem value="Armor">Armor</SelectItem>
-                              <SelectItem value="Accessory">Accessory</SelectItem>
+                              <SelectItem value="Accessory">
+                                Accessory
+                              </SelectItem>
                               <SelectItem value="Rune">Rune</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
-                        <div>
-                          <Label htmlFor={`item-description-${index}`} className="text-xs">
-                            Description
-                          </Label>
-                          <Input
-                            id={`item-description-${index}`}
-                            value={item.description}
-                            onChange={(e) => updateItemReward(index, "description", e.target.value)}
-                            className="bg-[#0a0e14] border-[#1e2a3a] h-8"
-                            required
-                          />
-                        </div>
+
+                        {/* Show preset consumables dropdown when Consumable type is selected */}
+                        {item.type === "Consumable" && (
+                          <div>
+                            <Label
+                              htmlFor={`item-preset-${index}`}
+                              className="text-xs"
+                            >
+                              Preset Potions
+                            </Label>
+                            <Select
+                              onValueChange={(presetId) => {
+                                const preset = predefinedConsumables.find(
+                                  (p) => p.id === presetId
+                                );
+                                if (preset) {
+                                  updateItemReward(index, "name", preset.name);
+                                  updateItemReward(
+                                    index,
+                                    "description",
+                                    preset.description
+                                  );
+                                  // Store the ID for later use
+                                  updateItemReward(index, "id", presetId);
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="bg-[#0a0e14] border-[#1e2a3a] h-8">
+                                <SelectValue placeholder="Select a preset potion" />
+                              </SelectTrigger>
+                              <SelectContent className="bg-[#0a0e14] border-[#1e2a3a]">
+                                {predefinedConsumables.map((potion) => (
+                                  <SelectItem key={potion.id} value={potion.id}>
+                                    {potion.name} ({potion.rarity})
+                                  </SelectItem>
+                                ))}
+                                <SelectItem value="custom">
+                                  Custom Consumable
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -535,7 +659,11 @@ export function AddQuestForm() {
       </Dialog>
 
       {/* API Key Modal */}
-      <APIKeyModal open={apiKeyModalOpen} onOpenChange={setApiKeyModalOpen} onKeySubmit={handleAPIKeySubmit} />
+      <APIKeyModal
+        open={apiKeyModalOpen}
+        onOpenChange={setApiKeyModalOpen}
+        onKeySubmit={handleAPIKeySubmit}
+      />
     </>
-  )
+  );
 }

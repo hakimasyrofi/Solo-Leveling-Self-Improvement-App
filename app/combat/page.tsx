@@ -301,31 +301,98 @@ export default function CombatPage() {
 
     // Apply item effects based on item type and id
     if (item.type === "Consumable") {
-      switch (item.id) {
-        case "item-health-potion":
-          const healAmount = 100;
-          setPlayerHp((prev) => Math.min(userStats.maxHp, prev + healAmount));
-          toast({
-            title: "Health Restored",
-            description: `You used a Health Potion and restored ${healAmount} HP.`,
-          });
-          effectApplied = true;
-          break;
-        case "item-mana-potion":
-          const manaAmount = 50;
-          setPlayerMp((prev) => Math.min(userStats.maxMp, prev + manaAmount));
-          toast({
-            title: "Mana Restored",
-            description: `You used a Mana Potion and restored ${manaAmount} MP.`,
-          });
-          effectApplied = true;
-          break;
-        default:
-          toast({
-            title: "Item Effect Unknown",
-            description: "This item's effect is not implemented yet.",
-            variant: "destructive",
-          });
+      // First check for specific item IDs for built-in items
+      if (item.id === "item-health-potion") {
+        const healAmount = 100;
+        setPlayerHp((prev) => Math.min(userStats.maxHp, prev + healAmount));
+        toast({
+          title: "Health Restored",
+          description: `You used a Health Potion and restored ${healAmount} HP.`,
+        });
+        effectApplied = true;
+      } else if (item.id === "item-mana-potion") {
+        const manaAmount = 50;
+        setPlayerMp((prev) => Math.min(userStats.maxMp, prev + manaAmount));
+        toast({
+          title: "Mana Restored",
+          description: `You used a Mana Potion and restored ${manaAmount} MP.`,
+        });
+        effectApplied = true;
+      } else if (item.id === "item-greater-health-potion") {
+        const healAmount = 200;
+        setPlayerHp((prev) => Math.min(userStats.maxHp, prev + healAmount));
+        toast({
+          title: "Health Restored",
+          description: `You used a Greater Health Potion and restored ${healAmount} HP.`,
+        });
+        effectApplied = true;
+      } else if (item.id === "item-greater-mana-potion") {
+        const manaAmount = 100;
+        setPlayerMp((prev) => Math.min(userStats.maxMp, prev + manaAmount));
+        toast({
+          title: "Mana Restored",
+          description: `You used a Greater Mana Potion and restored ${manaAmount} MP.`,
+        });
+        effectApplied = true;
+      } else if (item.id === "item-healing-elixir") {
+        const healAmount = 350;
+        setPlayerHp((prev) => Math.min(userStats.maxHp, prev + healAmount));
+        toast({
+          title: "Health Restored",
+          description: `You used a Healing Elixir and restored ${healAmount} HP.`,
+        });
+        effectApplied = true;
+      } else if (item.id === "item-mana-elixir") {
+        const manaAmount = 175;
+        setPlayerMp((prev) => Math.min(userStats.maxMp, prev + manaAmount));
+        toast({
+          title: "Mana Restored",
+          description: `You used a Mana Elixir and restored ${manaAmount} MP.`,
+        });
+        effectApplied = true;
+      }
+      // For other consumables, check name patterns
+      else if (
+        item.name.toLowerCase().includes("health") ||
+        item.name.toLowerCase().includes("healing") ||
+        item.name.toLowerCase().includes("hp")
+      ) {
+        // Default healing amount (can be customized based on rarity)
+        let healAmount = 50;
+        if (item.rarity === "Uncommon") healAmount = 100;
+        if (item.rarity === "Rare") healAmount = 200;
+        if (item.rarity === "Epic") healAmount = 350;
+        if (item.rarity === "Legendary") healAmount = 500;
+
+        setPlayerHp((prev) => Math.min(userStats.maxHp, prev + healAmount));
+        toast({
+          title: "Health Restored",
+          description: `You used ${item.name} and restored ${healAmount} HP.`,
+        });
+        effectApplied = true;
+      } else if (
+        item.name.toLowerCase().includes("mana") ||
+        item.name.toLowerCase().includes("mp")
+      ) {
+        // Default mana restoration amount
+        let manaAmount = 25;
+        if (item.rarity === "Uncommon") manaAmount = 50;
+        if (item.rarity === "Rare") manaAmount = 100;
+        if (item.rarity === "Epic") manaAmount = 175;
+        if (item.rarity === "Legendary") manaAmount = 250;
+
+        setPlayerMp((prev) => Math.min(userStats.maxMp, prev + manaAmount));
+        toast({
+          title: "Mana Restored",
+          description: `You used ${item.name} and restored ${manaAmount} MP.`,
+        });
+        effectApplied = true;
+      } else {
+        toast({
+          title: "Item Effect Unknown",
+          description: "This item's effect is not implemented yet.",
+          variant: "destructive",
+        });
       }
     } else {
       toast({

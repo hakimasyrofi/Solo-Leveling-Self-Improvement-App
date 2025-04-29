@@ -60,8 +60,21 @@ export function CombatVisualization({
   playerStats,
   onAnimationComplete,
 }: CombatVisualizationProps) {
-  const [playerPosition] = useState({ x: 100, y: 200 });
-  const [enemyPosition] = useState({ x: 300, y: 200 });
+  // Base canvas dimensions (will be scaled)
+  const baseWidth = 400;
+  const baseHeight = 300;
+
+  // State for canvas size
+  const [canvasSize, setCanvasSize] = useState({
+    width: baseWidth,
+    height: baseHeight,
+  });
+
+  // Container ref to measure available width
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const [playerPosition, setPlayerPosition] = useState({ x: 100, y: 200 });
+  const [enemyPosition, setEnemyPosition] = useState({ x: 300, y: 200 });
   const [playerColor, setPlayerColor] = useState("#4cc9ff");
   const [enemyColor, setEnemyColor] = useState("#ff4c4c");
   const [effectPosition, setEffectPosition] = useState({ x: 0, y: 0 });
@@ -79,6 +92,51 @@ export function CombatVisualization({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>(0);
   const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Resize handler for responsive canvas
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        // Get container width
+        const containerWidth = containerRef.current.clientWidth;
+
+        // Calculate responsive canvas size
+        let newWidth = containerWidth;
+
+        // Cap maximum width for larger screens (to avoid too large visualizations)
+        const maxWidth = 600;
+        newWidth = Math.min(newWidth, maxWidth);
+
+        // Maintain aspect ratio
+        const aspectRatio = baseHeight / baseWidth;
+        const newHeight = Math.floor(newWidth * aspectRatio);
+
+        // Update canvas size
+        setCanvasSize({ width: newWidth, height: newHeight });
+
+        // Update player and enemy positions based on new dimensions
+        const scaleX = newWidth / baseWidth;
+        setPlayerPosition({
+          x: Math.floor(100 * scaleX),
+          y: Math.floor(200 * (newHeight / baseHeight)),
+        });
+        setEnemyPosition({
+          x: Math.floor(300 * scaleX),
+          y: Math.floor(200 * (newHeight / baseHeight)),
+        });
+      }
+    };
+
+    // Initial sizing
+    handleResize();
+
+    // Set up resize listener
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [baseWidth, baseHeight]);
 
   // Animation logic
   useEffect(() => {
@@ -238,6 +296,10 @@ export function CombatVisualization({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Scale for responsive drawing
+    const scaleX = canvasSize.width / baseWidth;
+    const scaleY = canvasSize.height / baseHeight;
+
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -248,66 +310,90 @@ export function CombatVisualization({
     // Draw player
     ctx.fillStyle = playerColor;
     ctx.beginPath();
-    ctx.arc(playerPosition.x, playerPosition.y, 20, 0, Math.PI * 2);
+    ctx.arc(playerPosition.x, playerPosition.y, 15 * scaleY, 0, Math.PI * 2);
     ctx.fill();
 
     // Draw player name
     ctx.fillStyle = "#e0f2ff";
-    ctx.font = "14px sans-serif";
+    ctx.font = `${14 * scaleY}px sans-serif`;
     ctx.textAlign = "center";
-    ctx.fillText(playerName, playerPosition.x, playerPosition.y - 30);
+    ctx.fillText(playerName, playerPosition.x, playerPosition.y - 30 * scaleY);
 
     // Draw enemy
     ctx.fillStyle = enemyColor;
     ctx.beginPath();
-    ctx.arc(enemyPosition.x, enemyPosition.y, 20, 0, Math.PI * 2);
+    ctx.arc(enemyPosition.x, enemyPosition.y, 15 * scaleY, 0, Math.PI * 2);
     ctx.fill();
 
     // Draw enemy name
     ctx.fillStyle = "#e0f2ff";
-    ctx.font = "14px sans-serif";
+    ctx.font = `${14 * scaleY}px sans-serif`;
     ctx.textAlign = "center";
-    ctx.fillText(enemyName, enemyPosition.x, enemyPosition.y - 30);
+    ctx.fillText(enemyName, enemyPosition.x, enemyPosition.y - 30 * scaleY);
 
     // Draw effect if needed
     if (showEffect) {
       if (effectType === "attack") {
         // Draw slash effect
         ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3 * scaleY;
         ctx.beginPath();
-        ctx.moveTo(effectPosition.x - 15, effectPosition.y - 15);
-        ctx.lineTo(effectPosition.x + 15, effectPosition.y + 15);
+        ctx.moveTo(
+          effectPosition.x - 15 * scaleX,
+          effectPosition.y - 15 * scaleY
+        );
+        ctx.lineTo(
+          effectPosition.x + 15 * scaleX,
+          effectPosition.y + 15 * scaleY
+        );
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(effectPosition.x + 15, effectPosition.y - 15);
-        ctx.lineTo(effectPosition.x - 15, effectPosition.y + 15);
+        ctx.moveTo(
+          effectPosition.x + 15 * scaleX,
+          effectPosition.y - 15 * scaleY
+        );
+        ctx.lineTo(
+          effectPosition.x - 15 * scaleX,
+          effectPosition.y + 15 * scaleY
+        );
         ctx.stroke();
       } else if (effectType === "defend") {
         // Draw shield effect
         ctx.strokeStyle = "#4cc9ff";
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3 * scaleY;
         ctx.beginPath();
-        ctx.arc(effectPosition.x, effectPosition.y, 25, 0, Math.PI * 2);
+        ctx.arc(
+          effectPosition.x,
+          effectPosition.y,
+          25 * scaleY,
+          0,
+          Math.PI * 2
+        );
         ctx.stroke();
       } else if (effectType === "damage") {
         // Draw damage effect
         ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
         ctx.beginPath();
-        ctx.arc(effectPosition.x, effectPosition.y, 25, 0, Math.PI * 2);
+        ctx.arc(
+          effectPosition.x,
+          effectPosition.y,
+          25 * scaleY,
+          0,
+          Math.PI * 2
+        );
         ctx.fill();
 
         // Draw impact lines
         ctx.strokeStyle = "#ff4c4c";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 * scaleY;
         for (let i = 0; i < 8; i++) {
           const angle = ((Math.PI * 2) / 8) * i;
           ctx.beginPath();
           ctx.moveTo(effectPosition.x, effectPosition.y);
           ctx.lineTo(
-            effectPosition.x + Math.cos(angle) * 30,
-            effectPosition.y + Math.sin(angle) * 30
+            effectPosition.x + Math.cos(angle) * 30 * scaleX,
+            effectPosition.y + Math.sin(angle) * 30 * scaleY
           );
           ctx.stroke();
         }
@@ -316,7 +402,7 @@ export function CombatVisualization({
 
     // Draw damage text
     if (showDamageText) {
-      ctx.font = "bold 16px sans-serif";
+      ctx.font = `bold ${16 * scaleY}px sans-serif`;
       ctx.textAlign = "center";
 
       // Draw text with outline for better visibility
@@ -328,7 +414,7 @@ export function CombatVisualization({
 
       // Draw text shadow/outline
       ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 3 * scaleY;
       ctx.strokeText(damageText, damageTextPosition.x, damageTextPosition.y);
 
       // Draw text
@@ -337,7 +423,7 @@ export function CombatVisualization({
 
     // Draw arena floor
     ctx.fillStyle = "#1e2a3a";
-    ctx.fillRect(50, 230, 300, 20);
+    ctx.fillRect(50 * scaleX, 230 * scaleY, 300 * scaleX, 20 * scaleY);
   }, [
     playerPosition,
     enemyPosition,
@@ -352,6 +438,9 @@ export function CombatVisualization({
     damageText,
     damageTextPosition,
     isCritical,
+    canvasSize,
+    baseWidth,
+    baseHeight,
   ]);
 
   return (
@@ -484,12 +573,12 @@ export function CombatVisualization({
             </div>
           </div>
         )}
-        <div className="flex justify-center">
+        <div ref={containerRef} className="flex justify-center w-full">
           <canvas
             ref={canvasRef}
-            width={400}
-            height={300}
-            className="border border-[#1e2a3a] rounded-md"
+            width={canvasSize.width}
+            height={canvasSize.height}
+            className="border border-[#1e2a3a] rounded-md max-w-full"
           />
         </div>
       </CardContent>

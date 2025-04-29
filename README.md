@@ -10,11 +10,11 @@ The application uses a character-based progression system where completing tasks
 
 ## Screenshots
 
+_Main dashboard view_
 ![Dashboard Screenshot](/public/screenshots/dashboard-screenshot.png)
-_Main dashboard view of the Solo Leveling app_
 
+_Quests view_
 ![Quests Screenshot](/public/screenshots/quests-screenshot.png)
-Quests view of the Solo Leveling app\_
 
 You can find more screenshots in the [screenshots directory](/public/screenshots/).
 

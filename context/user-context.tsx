@@ -64,6 +64,10 @@ interface UserContextType {
   removeItem: (itemId: string, quantity?: number) => void;
   useItem: (itemId: string) => void;
   addGold: (amount: number) => void;
+  levelUpCount: number;
+  showLevelUpModal: boolean;
+  setShowLevelUpModal: (show: boolean) => void;
+  resetLevelUpCount: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -72,6 +76,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [userStats, setUserStats] = useState<UserStats>(initialUserStats);
   const [isInitialized, setIsInitialized] = useState(false);
   const [itemToUse, setItemToUse] = useState<string | null>(null);
+  // Add state to track level up events
+  const [levelUpCount, setLevelUpCount] = useState(0);
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+
+  // Reset level up count
+  const resetLevelUpCount = () => {
+    setLevelUpCount(0);
+  };
 
   // Load user stats from localStorage on initial render
   useEffect(() => {
@@ -89,7 +101,22 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   // Add experience points
   const addExp = (exp: number) => {
-    setUserStats((prevStats) => addExperience(prevStats, exp));
+    const prevLevel = userStats.level;
+    
+    setUserStats((prevStats) => {
+      const updatedStats = addExperience(prevStats, exp);
+      
+      // Check if level increased and by how much
+      const levelDifference = updatedStats.level - prevLevel;
+      
+      if (levelDifference > 0) {
+        // Update level up count and show modal
+        setLevelUpCount(levelDifference);
+        setShowLevelUpModal(true);
+      }
+      
+      return updatedStats;
+    });
   };
 
   // Allocate a stat point
@@ -105,6 +132,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   // Add these functions to the UserProvider component
   // Complete a quest
   const completeQuest = (questId: string) => {
+    const prevLevel = userStats.level;
+    
     setUserStats((prevStats) => {
       // Find the quest
       const quest = prevStats.quests.find((q) => q.id === questId);
@@ -112,6 +141,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       // First add the experience
       let newStats = addExperience(prevStats, quest.expReward);
+      
+      // Check if level increased and by how much
+      const levelDifference = newStats.level - prevLevel;
+      
+      if (levelDifference > 0) {
+        // Update level up count and show modal
+        setLevelUpCount(levelDifference);
+        setShowLevelUpModal(true);
+      }
 
       // Then add the stat points
       newStats = {
@@ -273,6 +311,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         removeItem,
         useItem,
         addGold,
+        levelUpCount,
+        showLevelUpModal,
+        setShowLevelUpModal,
+        resetLevelUpCount,
       }}
     >
       {children}

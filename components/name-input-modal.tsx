@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -13,45 +13,68 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { useUser } from "@/context/user-context"
+} from "@/components/ui/dialog";
+import { useUser } from "@/context/user-context";
 
 export function NameInputModal() {
-  const { userStats, setUserStats } = useUser()
-  const [open, setOpen] = useState(false)
-  const [name, setName] = useState("")
-  const [hasCheckedStorage, setHasCheckedStorage] = useState(false)
+  const { userStats, setUserStats } = useUser();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [hasCheckedStorage, setHasCheckedStorage] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Initialize audio element
+  useEffect(() => {
+    audioRef.current = new Audio("/glitch-screen.mp3");
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   // Check if name is empty on component mount
   useEffect(() => {
     // Only check once to prevent reopening after saving
     if (!hasCheckedStorage) {
       // Check localStorage directly to avoid race conditions with context loading
-      const storedStats = localStorage.getItem("soloLevelUpUserStats")
-      let shouldOpen = false
+      const storedStats = localStorage.getItem("soloLevelUpUserStats");
+      let shouldOpen = false;
 
       if (storedStats) {
-        const parsedStats = JSON.parse(storedStats)
-        shouldOpen = !parsedStats.name || parsedStats.name.trim() === ""
+        const parsedStats = JSON.parse(storedStats);
+        shouldOpen = !parsedStats.name || parsedStats.name.trim() === "";
       } else {
-        shouldOpen = true
+        shouldOpen = true;
       }
 
-      setOpen(shouldOpen)
-      setHasCheckedStorage(true)
+      setOpen(shouldOpen);
+      setHasCheckedStorage(true);
     }
-  }, [hasCheckedStorage, userStats.name])
+  }, [hasCheckedStorage, userStats.name]);
+
+  // Play sound effect when modal opens
+  useEffect(() => {
+    if (open && audioRef.current) {
+      // Reset the audio to start from beginning if it was played before
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch((err) => {
+        console.error("Error playing audio:", err);
+      });
+    }
+  }, [open]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (name.trim()) {
       setUserStats((prev) => ({
         ...prev,
         name: name.trim(),
-      }))
-      setOpen(false)
+      }));
+      setOpen(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -97,5 +120,5 @@ export function NameInputModal() {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

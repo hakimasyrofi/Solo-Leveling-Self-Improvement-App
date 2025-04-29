@@ -8,6 +8,16 @@ Solo Leveling - Self-Improvement App is a gamified self-improvement application 
 
 The application uses a character-based progression system where completing tasks and defeating enemies rewards you with experience points, stat points, gold, and items, creating a rewarding feedback loop for self-improvement activities.
 
+## Screenshots
+
+![Dashboard Screenshot](/screenshots/dashboard-screenshot.jpg)
+_Main dashboard view of the Solo Leveling app_
+
+![Quests Screenshot](/screenshots/quests-screenshot.jpg)
+Quests view of the Solo Leveling app\_
+
+You can find more screenshots in the [screenshots directory](/screenshots/).
+
 ## Main Features
 
 ### Character Development

@@ -1,23 +1,30 @@
-"use client"
+"use client";
 
-import type React from "react"
-import Link from "next/link"
-import { Shield, Zap, Eye, Brain, Heart, Menu, X, Award } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { useUser } from "@/context/user-context"
+import type React from "react";
+import Link from "next/link";
+import { Shield, Zap, Eye, Brain, Heart, Menu, X, Award } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useUser } from "@/context/user-context";
 // Import the NameInputModal component
-import { MobileNav } from "@/components/mobile-nav"
-import { NameInputModal } from "@/components/name-input-modal"
+import { MobileNav } from "@/components/mobile-nav";
+import { NameInputModal } from "@/components/name-input-modal";
 
 export default function Dashboard() {
-  const { userStats, addExp, completeQuest } = useUser()
+  const { userStats, addExp, completeQuest } = useUser();
 
   // Calculate progress percentage for XP bar
-  const expPercentage = (userStats.exp / userStats.expToNextLevel) * 100
+  const expPercentage = (userStats.exp / userStats.expToNextLevel) * 100;
 
   return (
     <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff] pb-16 md:pb-0">
@@ -29,26 +36,46 @@ export default function Dashboard() {
         <header className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-2">
             <Award className="h-8 w-8 text-[#4cc9ff]" />
-            <h1 className="text-2xl font-bold tracking-tight text-[#4cc9ff]">SOLO LEVEL UP</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-[#4cc9ff]">
+              SOLO LEVEL UP
+            </h1>
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-6">
-              <Link href="/quests" className="text-sm font-medium hover:text-[#4cc9ff] transition-colors">
+              <Link
+                href="/quests"
+                className="text-sm font-medium hover:text-[#4cc9ff] transition-colors"
+              >
                 Quests
               </Link>
-              <Link href="/inventory" className="text-sm font-medium hover:text-[#4cc9ff] transition-colors">
+              <Link
+                href="/inventory"
+                className="text-sm font-medium hover:text-[#4cc9ff] transition-colors"
+              >
                 Inventory
               </Link>
-              <Link href="/equipment" className="text-sm font-medium hover:text-[#4cc9ff] transition-colors">
+              <Link
+                href="/equipment"
+                className="text-sm font-medium hover:text-[#4cc9ff] transition-colors"
+              >
                 Equipment
               </Link>
-              <Link href="/combat" className="text-sm font-medium hover:text-[#4cc9ff] transition-colors">
+              <Link
+                href="/combat"
+                className="text-sm font-medium hover:text-[#4cc9ff] transition-colors"
+              >
                 Combat
               </Link>
-              <Link href="/skills" className="text-sm font-medium hover:text-[#4cc9ff] transition-colors">
+              <Link
+                href="/skills"
+                className="text-sm font-medium hover:text-[#4cc9ff] transition-colors"
+              >
                 Skills
               </Link>
-              <Link href="/profile" className="text-sm font-medium hover:text-[#4cc9ff] transition-colors">
+              <Link
+                href="/profile"
+                className="text-sm font-medium hover:text-[#4cc9ff] transition-colors"
+              >
                 Profile
               </Link>
             </div>
@@ -60,7 +87,10 @@ export default function Dashboard() {
                     <span className="sr-only">Toggle menu</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="bg-[#0a0e14] border-[#1e2a3a]">
+                <SheetContent
+                  side="right"
+                  className="bg-[#0a0e14] border-[#1e2a3a]"
+                >
                   <div className="flex items-center justify-between mb-8">
                     <h2 className="text-xl font-bold text-[#4cc9ff]">Menu</h2>
                     <SheetTrigger asChild>
@@ -71,19 +101,34 @@ export default function Dashboard() {
                     </SheetTrigger>
                   </div>
                   <nav className="flex flex-col gap-4">
-                    <Link href="/quests" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
+                    <Link
+                      href="/quests"
+                      className="text-base font-medium hover:text-[#4cc9ff] transition-colors"
+                    >
                       Quests
                     </Link>
-                    <Link href="/inventory" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
+                    <Link
+                      href="/inventory"
+                      className="text-base font-medium hover:text-[#4cc9ff] transition-colors"
+                    >
                       Inventory
                     </Link>
-                    <Link href="/equipment" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
+                    <Link
+                      href="/equipment"
+                      className="text-base font-medium hover:text-[#4cc9ff] transition-colors"
+                    >
                       Equipment
                     </Link>
-                    <Link href="/combat" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
+                    <Link
+                      href="/combat"
+                      className="text-base font-medium hover:text-[#4cc9ff] transition-colors"
+                    >
                       Combat
                     </Link>
-                    <Link href="/skills" className="text-base font-medium hover:text-[#4cc9ff] transition-colors">
+                    <Link
+                      href="/skills"
+                      className="text-base font-medium hover:text-[#4cc9ff] transition-colors"
+                    >
                       Skills
                     </Link>
                   </nav>
@@ -112,13 +157,19 @@ export default function Dashboard() {
             <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
               {/* Level and Title */}
               <div className="text-center">
-                <div className="text-7xl font-bold text-[#4cc9ff] mb-1">{userStats.level}</div>
-                <div className="text-sm uppercase tracking-wider text-[#8bacc1]">LEVEL</div>
+                <div className="text-7xl font-bold text-[#4cc9ff] mb-1">
+                  {userStats.level}
+                </div>
+                <div className="text-sm uppercase tracking-wider text-[#8bacc1]">
+                  LEVEL
+                </div>
 
                 {/* Add name display above job */}
                 <div className="mt-4">
                   <div className="text-xs text-[#8bacc1]">NAME:</div>
-                  <div className="text-sm font-medium">{userStats.name || "Unnamed"}</div>
+                  <div className="text-sm font-medium">
+                    {userStats.name || "Unnamed"}
+                  </div>
                 </div>
 
                 <div className="mt-2">
@@ -142,7 +193,10 @@ export default function Dashboard() {
                       {userStats.hp}/{userStats.maxHp}
                     </span>
                   </div>
-                  <Progress value={(userStats.hp / userStats.maxHp) * 100} className="h-2 bg-[#1e2a3a]">
+                  <Progress
+                    value={(userStats.hp / userStats.maxHp) * 100}
+                    className="h-2 bg-[#1e2a3a]"
+                  >
                     <div className="h-full bg-gradient-to-r from-[#4cc9ff] to-[#4cc9ff]/70 rounded-full" />
                   </Progress>
                 </div>
@@ -156,7 +210,10 @@ export default function Dashboard() {
                       {userStats.mp}/{userStats.maxMp}
                     </span>
                   </div>
-                  <Progress value={(userStats.mp / userStats.maxMp) * 100} className="h-2 bg-[#1e2a3a]">
+                  <Progress
+                    value={(userStats.mp / userStats.maxMp) * 100}
+                    className="h-2 bg-[#1e2a3a]"
+                  >
                     <div className="h-full bg-gradient-to-r from-[#4cc9ff] to-[#4cc9ff]/70 rounded-full" />
                   </Progress>
                 </div>
@@ -182,7 +239,10 @@ export default function Dashboard() {
                     </span>
                     <span>{userStats.fatigue}</span>
                   </div>
-                  <Progress value={userStats.fatigue} className="h-2 bg-[#1e2a3a]">
+                  <Progress
+                    value={userStats.fatigue}
+                    className="h-2 bg-[#1e2a3a]"
+                  >
                     <div className="h-full bg-gradient-to-r from-[#ff4c4c] to-[#ff4c4c]/70 rounded-full" />
                   </Progress>
                 </div>
@@ -221,8 +281,12 @@ export default function Dashboard() {
                   />
                   <div className="flex flex-col sm:flex-row sm:items-center">
                     <div>
-                      <div className="text-xs text-[#8bacc1] mb-1">Available Points</div>
-                      <div className="text-3xl font-bold text-[#4cc9ff]">{userStats.statPoints}</div>
+                      <div className="text-xs text-[#8bacc1] mb-1">
+                        Available Points
+                      </div>
+                      <div className="text-3xl font-bold text-[#4cc9ff]">
+                        {userStats.statPoints}
+                      </div>
                     </div>
                     <Link href="/stats" className="mt-2 sm:mt-0 sm:ml-4">
                       <Button className="w-full sm:w-auto bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]">
@@ -247,9 +311,14 @@ export default function Dashboard() {
 
           <div className="p-6 relative z-10">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl uppercase tracking-wider text-[#4cc9ff]">EQUIPMENT</h2>
+              <h2 className="text-xl uppercase tracking-wider text-[#4cc9ff]">
+                EQUIPMENT
+              </h2>
               <Link href="/equipment">
-                <Button variant="outline" className="border-[#4cc9ff]/50 hover:bg-[#4cc9ff]/10 text-[#4cc9ff]">
+                <Button
+                  variant="outline"
+                  className="border-[#4cc9ff]/50 hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
+                >
                   View All
                 </Button>
               </Link>
@@ -292,9 +361,14 @@ export default function Dashboard() {
 
           <div className="p-6 relative z-10">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl uppercase tracking-wider text-[#4cc9ff]">ACTIVE QUESTS</h2>
+              <h2 className="text-xl uppercase tracking-wider text-[#4cc9ff]">
+                ACTIVE QUESTS
+              </h2>
               <Link href="/quests">
-                <Button variant="outline" className="border-[#4cc9ff]/50 hover:bg-[#4cc9ff]/10 text-[#4cc9ff]">
+                <Button
+                  variant="outline"
+                  className="border-[#4cc9ff]/50 hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
+                >
                   View All
                 </Button>
               </Link>
@@ -328,10 +402,18 @@ export default function Dashboard() {
       {/* Add the mobile navigation bar */}
       <MobileNav />
     </div>
-  )
+  );
 }
 
-function StatDisplay({ icon, name, value }: { icon: React.ReactNode; name: string; value: number }) {
+function StatDisplay({
+  icon,
+  name,
+  value,
+}: {
+  icon: React.ReactNode;
+  name: string;
+  value: number;
+}) {
   return (
     <div className="flex items-center">
       <div className="mr-3">{icon}</div>
@@ -340,7 +422,7 @@ function StatDisplay({ icon, name, value }: { icon: React.ReactNode; name: strin
         <div className="text-3xl font-bold text-[#4cc9ff]">{value}</div>
       </div>
     </div>
-  )
+  );
 }
 
 function EquipmentCard({
@@ -350,11 +432,11 @@ function EquipmentCard({
   setBonus,
   slot,
 }: {
-  name: string
-  rarity: "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary"
-  stats: string[]
-  setBonus: string
-  slot: string
+  name: string;
+  rarity: "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary";
+  stats: string[];
+  setBonus: string;
+  slot: string;
 }) {
   const rarityColors = {
     Common: "text-gray-400",
@@ -362,7 +444,7 @@ function EquipmentCard({
     Rare: "text-[#4cc9ff]",
     Epic: "text-purple-400",
     Legendary: "text-yellow-400",
-  }
+  };
 
   return (
     <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] overflow-hidden relative">
@@ -372,20 +454,24 @@ function EquipmentCard({
           rarity === "Common"
             ? "from-gray-500 to-gray-600"
             : rarity === "Uncommon"
-              ? "from-green-500 to-green-600"
-              : rarity === "Rare"
-                ? "from-[#4cc9ff] to-[#4cc9ff]/60"
-                : rarity === "Epic"
-                  ? "from-purple-500 to-purple-600"
-                  : "from-yellow-500 to-yellow-600"
+            ? "from-green-500 to-green-600"
+            : rarity === "Rare"
+            ? "from-[#4cc9ff] to-[#4cc9ff]/60"
+            : rarity === "Epic"
+            ? "from-purple-500 to-purple-600"
+            : "from-yellow-500 to-yellow-600"
         }`}
       ></div>
       <CardHeader className="pb-2 relative z-10">
         <div className="flex justify-between items-start">
-          <CardTitle className={`text-base ${rarityColors[rarity]}`}>{name}</CardTitle>
+          <CardTitle className={`text-base ${rarityColors[rarity]}`}>
+            {name}
+          </CardTitle>
           <span className="text-xs text-[#8bacc1]">{slot}</span>
         </div>
-        <CardDescription className={rarityColors[rarity]}>{rarity}</CardDescription>
+        <CardDescription className={rarityColors[rarity]}>
+          {rarity}
+        </CardDescription>
       </CardHeader>
       <CardContent className="relative z-10">
         <div className="space-y-1">
@@ -399,7 +485,7 @@ function EquipmentCard({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function QuestCard({
@@ -410,12 +496,12 @@ function QuestCard({
   difficulty,
   onComplete,
 }: {
-  title: string
-  description: string
-  reward: string
-  progress: number
-  difficulty: "S" | "A" | "B" | "C" | "D" | "E"
-  onComplete: () => void
+  title: string;
+  description: string;
+  reward: string;
+  progress: number;
+  difficulty: "S" | "A" | "B" | "C" | "D" | "E";
+  onComplete: () => void;
 }) {
   const difficultyColors = {
     S: "bg-red-500",
@@ -424,7 +510,7 @@ function QuestCard({
     C: "bg-green-500",
     D: "bg-blue-500",
     E: "bg-purple-500",
-  }
+  };
 
   return (
     <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative">
@@ -455,14 +541,6 @@ function QuestCard({
           </div>
         </div>
       </CardContent>
-      <CardFooter className="relative z-10">
-        <Button
-          className="w-full bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
-          onClick={progress === 100 ? onComplete : undefined}
-        >
-          {progress === 0 ? "Start Quest" : progress === 100 ? "Claim Reward" : "Continue Quest"}
-        </Button>
-      </CardFooter>
     </Card>
-  )
+  );
 }

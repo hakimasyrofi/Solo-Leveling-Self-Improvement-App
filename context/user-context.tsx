@@ -7,6 +7,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from "react";
 import {
   type UserStats,
@@ -79,6 +80,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   // Add state to track level up events
   const [levelUpCount, setLevelUpCount] = useState(0);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  // Track last recovery time for HP and MP regeneration
+  const [lastRecoveryTime, setLastRecoveryTime] = useState<number>(Date.now());
+  const recoveryIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Reset level up count
   const resetLevelUpCount = () => {
@@ -99,22 +103,97 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   }, [userStats, isInitialized]);
 
+  // Natural HP and MP recovery system - 10% every 5 minutes
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    // Clear any existing interval
+    if (recoveryIntervalRef.current) {
+      clearInterval(recoveryIntervalRef.current);
+    }
+
+    const RECOVERY_INTERVAL = 1000 * 60 * 5; // 5 minutes
+    const RECOVERY_PERCENTAGE = 0.1; // 10%
+
+    // Check if player needs recovery (if HP or MP is below max)
+    const needsRecovery =
+      userStats.hp < userStats.maxHp || userStats.mp < userStats.maxMp;
+
+    if (needsRecovery) {
+      // Set up interval for recovery
+      recoveryIntervalRef.current = setInterval(() => {
+        const now = Date.now();
+        const timeSinceLastRecovery = now - lastRecoveryTime;
+
+        // Check if enough time has passed for recovery
+        if (timeSinceLastRecovery >= RECOVERY_INTERVAL) {
+          setUserStats((prevStats) => {
+            // Calculate recovery amounts (10% of max values)
+            const hpRecoveryAmount = Math.floor(
+              prevStats.maxHp * RECOVERY_PERCENTAGE
+            );
+            const mpRecoveryAmount = Math.floor(
+              prevStats.maxMp * RECOVERY_PERCENTAGE
+            );
+
+            // Calculate new HP and MP values, not exceeding max values
+            const newHp = Math.min(
+              prevStats.maxHp,
+              prevStats.hp + hpRecoveryAmount
+            );
+            const newMp = Math.min(
+              prevStats.maxMp,
+              prevStats.mp + mpRecoveryAmount
+            );
+
+            // Only update if there's actual recovery
+            if (newHp === prevStats.hp && newMp === prevStats.mp) {
+              return prevStats;
+            }
+
+            return {
+              ...prevStats,
+              hp: newHp,
+              mp: newMp,
+            };
+          });
+
+          // Update last recovery time
+          setLastRecoveryTime(now);
+        }
+      }, 60000); // Check every minute
+    }
+
+    return () => {
+      if (recoveryIntervalRef.current) {
+        clearInterval(recoveryIntervalRef.current);
+      }
+    };
+  }, [
+    isInitialized,
+    userStats.hp,
+    userStats.mp,
+    userStats.maxHp,
+    userStats.maxMp,
+    lastRecoveryTime,
+  ]);
+
   // Add experience points
   const addExp = (exp: number) => {
     const prevLevel = userStats.level;
-    
+
     setUserStats((prevStats) => {
       const updatedStats = addExperience(prevStats, exp);
-      
+
       // Check if level increased and by how much
       const levelDifference = updatedStats.level - prevLevel;
-      
+
       if (levelDifference > 0) {
         // Update level up count and show modal
         setLevelUpCount(levelDifference);
         setShowLevelUpModal(true);
       }
-      
+
       return updatedStats;
     });
   };
@@ -133,7 +212,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   // Complete a quest
   const completeQuest = (questId: string) => {
     const prevLevel = userStats.level;
-    
+
     setUserStats((prevStats) => {
       // Find the quest
       const quest = prevStats.quests.find((q) => q.id === questId);
@@ -141,10 +220,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       // First add the experience
       let newStats = addExperience(prevStats, quest.expReward);
-      
+
       // Check if level increased and by how much
       const levelDifference = newStats.level - prevLevel;
-      
+
       if (levelDifference > 0) {
         // Update level up count and show modal
         setLevelUpCount(levelDifference);

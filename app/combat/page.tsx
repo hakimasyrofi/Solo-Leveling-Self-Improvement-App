@@ -595,6 +595,28 @@ export default function CombatPage() {
           </div>
         </header>
 
+        {/* Recovery notification card */}
+        <div className="mb-6">
+          <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative">
+            <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
+            <CardContent className="p-4 relative z-10">
+              <div className="flex items-start gap-3">
+                <Heart className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="text-sm font-medium text-[#4cc9ff] mb-1">
+                    Automatic Recovery System
+                  </h3>
+                  <p className="text-xs text-[#8bacc1]">
+                    Your character naturally recovers 10% of maximum HP and MP
+                    every 5 minutes, even after defeat. This allows you to
+                    continue adventuring if you run out of consumables.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Main Combat Area */}
         <div className="grid grid-cols-1 gap-6">
           {/* Left Column - Combat Area */}

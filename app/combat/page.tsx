@@ -41,8 +41,16 @@ import { EnemySelection } from "@/components/enemy-selection";
 import { CombatVisualization } from "@/components/combat-visualization";
 
 export default function CombatPage() {
-  const { userStats, setUserStats, addExp, addItem, addGold, removeItem } =
-    useUser();
+  const {
+    userStats,
+    setUserStats,
+    addExp,
+    addItem,
+    addGold,
+    removeItem,
+    inCombat: contextInCombat,
+    setInCombat: setContextInCombat,
+  } = useUser();
   const { toast } = useToast();
 
   // Combat states
@@ -87,6 +95,11 @@ export default function CombatPage() {
       }
     };
   }, [inCombat, playerHp, playerMp, setUserStats]);
+
+  // Sync local combat state with context combat state
+  useEffect(() => {
+    setContextInCombat(inCombat);
+  }, [inCombat, setContextInCombat]);
 
   // Start combat with selected enemy
   const startCombat = (enemy: Enemy) => {
@@ -608,8 +621,9 @@ export default function CombatPage() {
                   </h3>
                   <p className="text-xs text-[#8bacc1]">
                     Your character naturally recovers 10% of maximum HP and MP
-                    every 5 minutes, even after defeat. This allows you to
-                    continue adventuring if you run out of consumables.
+                    every 5 minutes when not in combat. This recovery continues
+                    even when you're offline, allowing you to return stronger
+                    after a break.
                   </p>
                 </div>
               </div>

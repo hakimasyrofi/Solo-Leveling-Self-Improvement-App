@@ -134,6 +134,9 @@ export default function QuestsPage() {
 
           {/* Active Quests */}
           <TabsContent value="active" className="mt-6">
+            <div className="mb-6 flex justify-center">
+              <AddQuestForm />
+            </div>
             <div className="grid grid-cols-1 gap-4">
               {activeQuests.length > 0 ? (
                 activeQuests.map((quest) => (
@@ -154,9 +157,6 @@ export default function QuestsPage() {
                     : "No active quests available."}
                 </div>
               )}
-            </div>
-            <div className="mt-6 flex justify-center">
-              <AddQuestForm />
             </div>
           </TabsContent>
 

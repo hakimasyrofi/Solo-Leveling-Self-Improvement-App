@@ -223,6 +223,78 @@ export function AddQuestForm() {
     setOpen(false);
   };
 
+  const processAIGeneratedItems = (items: any[]) => {
+    return items.map((item, index) => {
+      // First, check if the AI provided an ID for a consumable
+      if (item.type === "Consumable" && item.id) {
+        // Check if the ID matches any predefined consumable
+        const predefinedById = predefinedConsumables.find(
+          (p) => p.id === item.id
+        );
+
+        if (predefinedById) {
+          // Use the predefined consumable properties with matching ID
+          return {
+            id: predefinedById.id,
+            name: predefinedById.name,
+            type: predefinedById.type,
+            description: predefinedById.description,
+            rarity: predefinedById.rarity,
+          };
+        }
+      }
+
+      // If no ID match or ID not provided, fall back to name matching for consumables
+      if (item.type === "Consumable") {
+        // Try to find a matching predefined consumable by name (case-insensitive)
+        const predefined = predefinedConsumables.find(
+          (p) => p.name.toLowerCase() === item.name.toLowerCase()
+        );
+
+        if (predefined) {
+          // Use the predefined consumable properties
+          return {
+            id: predefined.id,
+            name: predefined.name,
+            type: predefined.type,
+            description: predefined.description,
+            rarity: predefined.rarity,
+          };
+        }
+
+        // Also try partial name matching for potions
+        const potionMatch = predefinedConsumables.find(
+          (p) =>
+            (item.name.toLowerCase().includes("health") &&
+              p.name.toLowerCase().includes("health")) ||
+            (item.name.toLowerCase().includes("mana") &&
+              p.name.toLowerCase().includes("mana")) ||
+            (item.name.toLowerCase().includes("focus") &&
+              p.name.toLowerCase().includes("focus"))
+        );
+
+        if (potionMatch) {
+          return {
+            id: potionMatch.id,
+            name: potionMatch.name,
+            type: potionMatch.type,
+            description: potionMatch.description,
+            rarity: potionMatch.rarity,
+          };
+        }
+      }
+
+      // For non-consumables or consumables that don't match predefined ones
+      return {
+        id: `custom-item-${Date.now()}-${index}`,
+        name: item.name,
+        type: item.type,
+        description: item.description || "",
+        rarity: "Common",
+      };
+    });
+  };
+
   const handleGenerateWithAI = async () => {
     // Check if description is empty
     if (!formData.description.trim()) {
@@ -262,7 +334,7 @@ export function AddQuestForm() {
         perReward: questData.statRewards?.per || 0,
         intReward: questData.statRewards?.int || 0,
         vitReward: questData.statRewards?.vit || 0,
-        itemRewards: questData.itemRewards || [],
+        itemRewards: processAIGeneratedItems(questData.itemRewards || []),
       }));
 
       toast({

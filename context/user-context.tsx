@@ -24,25 +24,7 @@ import {
 import type { InventoryItem } from "@/data/enemies";
 // Add these imports
 import { v4 as uuidv4 } from "uuid";
-
-// Define the Quest type
-interface Quest {
-  id: string;
-  title: string;
-  description: string;
-  reward: string;
-  progress: number;
-  difficulty: "S" | "A" | "B" | "C" | "D" | "E";
-  expiry: string;
-  expReward: number;
-  statPointsReward: number;
-  active: boolean;
-  completed: boolean;
-  isCustom?: boolean;
-  statRewards?: Partial<Record<keyof UserStats["stats"], number>>;
-  itemRewards?: InventoryItem[];
-  goldReward?: number;
-}
+import { Quest } from "@/interface/quest.interface";
 
 // Update the UserContextType interface to include quest management functions
 interface UserContextType {
@@ -314,7 +296,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         completedQuests: [...newStats.completedQuests, questId],
         quests: newStats.quests.map((q) =>
           q.id === questId
-            ? { ...q, progress: 100, completed: true, active: false }
+            ? {
+                ...q,
+                progress: 100,
+                completed: true,
+                active: false,
+                completedAt: Date.now(), // Set completed timestamp
+              }
             : q
         ),
       };
@@ -379,6 +367,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       completed: false,
       progress: 0,
       isCustom: true,
+      createdAt: Date.now(), // Set created timestamp
     };
 
     setUserStats((prevStats) => ({

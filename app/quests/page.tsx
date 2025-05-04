@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Quest } from "@/interface/quest.interface";
 
 export default function QuestsPage() {
   const {
@@ -65,19 +66,33 @@ export default function QuestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Filter quests based on search term and status
-  const activeQuests = userStats.quests.filter(
-    (quest) =>
-      !quest.completed &&
-      (quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        quest.description.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const activeQuests = userStats.quests
+    .filter(
+      (quest) =>
+        !quest.completed &&
+        (quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          quest.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
+    // Sort active quests by creation time (newest first)
+    .sort((a, b) => {
+      const timeA = a.createdAt || 0; // Ensure createdAt exists or cast type
+      const timeB = b.createdAt || 0;
+      return timeB - timeA;
+    });
 
-  const completedQuests = userStats.quests.filter(
-    (quest) =>
-      quest.completed &&
-      (quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        quest.description.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const completedQuests = userStats.quests
+    .filter(
+      (quest) =>
+        quest.completed &&
+        (quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          quest.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
+    // Sort completed quests by completion time (newest first)
+    .sort((a, b) => {
+      const timeA = a.completedAt || 0;
+      const timeB = b.completedAt || 0;
+      return timeB - timeA;
+    });
 
   const handleDeleteQuest = (questId: string) => {
     deleteQuest(questId);
@@ -192,19 +207,7 @@ function QuestCard({
   onProgress,
   onDelete,
 }: {
-  quest: {
-    id: string;
-    title: string;
-    description: string;
-    reward: string;
-    progress: number;
-    difficulty: "S" | "A" | "B" | "C" | "D" | "E";
-    expiry: string;
-    expReward: number;
-    statPointsReward: number;
-    completed?: boolean;
-    isCustom?: boolean;
-  };
+  quest: Quest;
   onComplete?: () => void;
   onProgress?: (progress: number) => void;
   onDelete?: () => void;
@@ -220,6 +223,23 @@ function QuestCard({
     expReward: quest.expReward,
     statPointsReward: quest.statPointsReward,
   });
+
+  // Format date from timestamp
+  const formatDate = (timestamp?: number) => {
+    if (!timestamp) return "";
+    const date = new Date(timestamp);
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "2-digit",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  const timeDisplay = quest.completed
+    ? formatDate(quest.completedAt)
+    : formatDate(quest.createdAt);
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -491,6 +511,10 @@ function QuestCard({
               <span className="text-[#8bacc1]">Stat Points: </span>
               <span className="text-[#4cc9ff]">{quest.statPointsReward}</span>
             </div>
+          </div>
+          <div className="text-xs text-[#8bacc1]">
+            {quest.completed ? "Completed At: " : "Created At: "}
+            <span className="text-[#4cc9ff]">{timeDisplay}</span>
           </div>
         </div>
       </CardContent>

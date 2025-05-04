@@ -1,5 +1,6 @@
 // Import the InventoryItem interface
 import type { InventoryItem } from "@/data/enemies";
+import { Quest } from "@/interface/quest.interface";
 
 // Define the user data structure
 export interface UserStats {
@@ -37,31 +38,6 @@ export interface Equipment {
   setBonus: string;
   slot: string;
   equipped: boolean;
-}
-
-// Update the Quest interface to include a custom flag
-export interface Quest {
-  id: string;
-  title: string;
-  description: string;
-  reward: string;
-  progress: number;
-  difficulty: "S" | "A" | "B" | "C" | "D" | "E";
-  expiry: string;
-  expReward: number;
-  statPointsReward: number;
-  active: boolean;
-  completed: boolean;
-  isCustom?: boolean; // Flag to identify user-created quests
-  statRewards?: {
-    str?: number;
-    agi?: number;
-    per?: number;
-    int?: number;
-    vit?: number;
-  };
-  itemRewards?: InventoryItem[]; // Add item rewards
-  goldReward?: number; // Add gold reward
 }
 
 // Add some sample quests to the initial user stats

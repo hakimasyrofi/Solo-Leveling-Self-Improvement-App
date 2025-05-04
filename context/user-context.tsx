@@ -7,6 +7,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
 } from "react";
 import {
   type UserStats,
@@ -68,6 +69,8 @@ interface UserContextType {
   showLevelUpModal: boolean;
   setShowLevelUpModal: (show: boolean) => void;
   resetLevelUpCount: () => void;
+  inCombat: boolean;
+  setInCombat: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -79,6 +82,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   // Add state to track level up events
   const [levelUpCount, setLevelUpCount] = useState(0);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  // Track last recovery time for HP and MP regeneration
+  const [lastRecoveryTime, setLastRecoveryTime] = useState<number>(Date.now());
+  const recoveryIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Add state to track if player is in combat
+  const [inCombat, setInCombat] = useState(false);
 
   // Reset level up count
   const resetLevelUpCount = () => {
@@ -87,7 +95,60 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   // Load user stats from localStorage on initial render
   useEffect(() => {
-    const loadedStats = loadUserStats();
+    let loadedStats = loadUserStats();
+
+    // Check if there's a last recovery time stored in localStorage
+    const storedLastRecoveryTime = localStorage.getItem("lastRecoveryTime");
+    if (storedLastRecoveryTime) {
+      setLastRecoveryTime(parseInt(storedLastRecoveryTime, 10));
+    }
+
+    // Check for recovery that should have happened while offline
+    if (storedLastRecoveryTime) {
+      const lastTime = parseInt(storedLastRecoveryTime, 10);
+      const now = Date.now();
+      const RECOVERY_INTERVAL = 500 * 60 * 10; // 5 minutes in milliseconds
+      const RECOVERY_PERCENTAGE = 0.1; // 10%
+
+      // Calculate how many recovery periods have passed
+      const timeDifference = now - lastTime;
+      const recoveryPeriods = Math.floor(timeDifference / RECOVERY_INTERVAL);
+
+      if (recoveryPeriods > 0) {
+        // Apply recovery for the time user was away
+        const newStats = { ...loadedStats };
+
+        if (newStats.hp < newStats.maxHp || newStats.mp < newStats.maxMp) {
+          // Calculate total recovery amount (capped at max values)
+          const hpRecoveryTotal = Math.min(
+            newStats.maxHp - newStats.hp,
+            Math.floor(newStats.maxHp * RECOVERY_PERCENTAGE * recoveryPeriods)
+          );
+
+          const mpRecoveryTotal = Math.min(
+            newStats.maxMp - newStats.mp,
+            Math.floor(newStats.maxMp * RECOVERY_PERCENTAGE * recoveryPeriods)
+          );
+
+          // Apply the recovery
+          newStats.hp = Math.min(newStats.maxHp, newStats.hp + hpRecoveryTotal);
+          newStats.mp = Math.min(newStats.maxMp, newStats.mp + mpRecoveryTotal);
+
+          // Update the recovery time to reflect the most recent recovery
+          const mostRecentRecoveryTime =
+            lastTime + recoveryPeriods * RECOVERY_INTERVAL;
+          setLastRecoveryTime(mostRecentRecoveryTime);
+          localStorage.setItem(
+            "lastRecoveryTime",
+            mostRecentRecoveryTime.toString()
+          );
+
+          // Set the updated stats
+          loadedStats = newStats;
+        }
+      }
+    }
+
     setUserStats(loadedStats);
     setIsInitialized(true);
   }, []);
@@ -99,22 +160,117 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     }
   }, [userStats, isInitialized]);
 
+  // Natural HP and MP recovery system - 10% every 5 minutes when not in combat
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    // Clear any existing interval
+    if (recoveryIntervalRef.current) {
+      clearInterval(recoveryIntervalRef.current);
+    }
+
+    const RECOVERY_INTERVAL = 500 * 60 * 10; // 5 minutes (changed from 5)
+    const RECOVERY_PERCENTAGE = 0.1; // 10%
+    const CHECK_INTERVAL = 60000; // Check every minute
+
+    // Only proceed with recovery if not in combat
+    if (!inCombat) {
+      // Check if player needs recovery (if HP or MP is below max)
+      const needsRecovery =
+        userStats.hp < userStats.maxHp || userStats.mp < userStats.maxMp;
+
+      if (needsRecovery) {
+        // Set up interval for recovery
+        recoveryIntervalRef.current = setInterval(() => {
+          const now = Date.now();
+          const timeSinceLastRecovery = now - lastRecoveryTime;
+
+          // Check if enough time has passed for recovery
+          if (timeSinceLastRecovery >= RECOVERY_INTERVAL) {
+            setUserStats((prevStats) => {
+              // Don't apply recovery if player is in combat
+              if (inCombat) return prevStats;
+
+              // Calculate recovery amounts (10% of max values)
+              const hpRecoveryAmount = Math.floor(
+                prevStats.maxHp * RECOVERY_PERCENTAGE
+              );
+              const mpRecoveryAmount = Math.floor(
+                prevStats.maxMp * RECOVERY_PERCENTAGE
+              );
+
+              // Calculate new HP and MP values, not exceeding max values
+              const newHp = Math.min(
+                prevStats.maxHp,
+                prevStats.hp + hpRecoveryAmount
+              );
+              const newMp = Math.min(
+                prevStats.maxMp,
+                prevStats.mp + mpRecoveryAmount
+              );
+
+              // Only update if there's actual recovery
+              if (newHp === prevStats.hp && newMp === prevStats.mp) {
+                return prevStats;
+              }
+
+              return {
+                ...prevStats,
+                hp: newHp,
+                mp: newMp,
+              };
+            });
+
+            // Update last recovery time and store in localStorage
+            const newRecoveryTime = now;
+            setLastRecoveryTime(newRecoveryTime);
+            localStorage.setItem(
+              "lastRecoveryTime",
+              newRecoveryTime.toString()
+            );
+          }
+        }, CHECK_INTERVAL); // Check every minute
+      }
+    }
+
+    return () => {
+      if (recoveryIntervalRef.current) {
+        clearInterval(recoveryIntervalRef.current);
+      }
+    };
+  }, [
+    isInitialized,
+    userStats.hp,
+    userStats.mp,
+    userStats.maxHp,
+    userStats.maxMp,
+    lastRecoveryTime,
+    inCombat,
+  ]);
+
+  // Update lastRecoveryTime in localStorage when component unmounts
+  useEffect(() => {
+    return () => {
+      localStorage.setItem("lastRecoveryTime", lastRecoveryTime.toString());
+    };
+  }, [lastRecoveryTime]);
+
   // Add experience points
   const addExp = (exp: number) => {
     const prevLevel = userStats.level;
-    
+
     setUserStats((prevStats) => {
       const updatedStats = addExperience(prevStats, exp);
-      
+
       // Check if level increased and by how much
       const levelDifference = updatedStats.level - prevLevel;
-      
+
       if (levelDifference > 0) {
         // Update level up count and show modal
         setLevelUpCount(levelDifference);
         setShowLevelUpModal(true);
       }
-      
+
       return updatedStats;
     });
   };
@@ -133,7 +289,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   // Complete a quest
   const completeQuest = (questId: string) => {
     const prevLevel = userStats.level;
-    
+
     setUserStats((prevStats) => {
       // Find the quest
       const quest = prevStats.quests.find((q) => q.id === questId);
@@ -141,10 +297,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       // First add the experience
       let newStats = addExperience(prevStats, quest.expReward);
-      
+
       // Check if level increased and by how much
       const levelDifference = newStats.level - prevLevel;
-      
+
       if (levelDifference > 0) {
         // Update level up count and show modal
         setLevelUpCount(levelDifference);
@@ -315,6 +471,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         showLevelUpModal,
         setShowLevelUpModal,
         resetLevelUpCount,
+        inCombat,
+        setInCombat,
       }}
     >
       {children}

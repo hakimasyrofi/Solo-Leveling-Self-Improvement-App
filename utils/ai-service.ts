@@ -3,69 +3,72 @@
 // Store the API key in localStorage
 export const storeAPIKey = (provider: string, apiKey: string): void => {
   if (typeof window !== "undefined") {
-    localStorage.setItem("soloLevelUpAIProvider", provider)
-    localStorage.setItem("soloLevelUpAIKey", apiKey)
+    localStorage.setItem("soloLevelUpAIProvider", provider);
+    localStorage.setItem("soloLevelUpAIKey", apiKey);
   }
-}
+};
 
 // Retrieve the API provider from localStorage
 export const getAIProvider = (): string | null => {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("soloLevelUpAIProvider") || "openai"
+    return localStorage.getItem("soloLevelUpAIProvider") || "openai";
   }
-  return null
-}
+  return null;
+};
 
 // Retrieve the API key from localStorage
 export const getAPIKey = (): string | null => {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("soloLevelUpAIKey")
+    return localStorage.getItem("soloLevelUpAIKey");
   }
-  return null
-}
+  return null;
+};
 
 // Check if any API key exists
 export const hasAPIKey = (): boolean => {
-  return getAPIKey() !== null
-}
+  return getAPIKey() !== null;
+};
 
 // Remove the API key from localStorage
 export const removeAPIKey = (): void => {
   if (typeof window !== "undefined") {
-    localStorage.removeItem("soloLevelUpAIProvider")
-    localStorage.removeItem("soloLevelUpAIKey")
+    localStorage.removeItem("soloLevelUpAIProvider");
+    localStorage.removeItem("soloLevelUpAIKey");
   }
-}
+};
 
 // Interface for AI-generated quest data
 export interface AIQuestData {
-  title: string
-  description: string
-  difficulty: "S" | "A" | "B" | "C" | "D" | "E"
-  expiry?: string // Made optional since we won't use it
-  expReward: number
-  statPointsReward: number
-  goldReward: number
+  title: string;
+  description: string;
+  difficulty: "S" | "A" | "B" | "C" | "D" | "E";
+  expiry?: string; // Made optional since we won't use it
+  expReward: number;
+  statPointsReward: number;
+  goldReward: number;
   statRewards: {
-    str?: number
-    agi?: number
-    per?: number
-    int?: number
-    vit?: number
-  }
+    str?: number;
+    agi?: number;
+    per?: number;
+    int?: number;
+    vit?: number;
+  };
   itemRewards?: {
-    name: string
-    type: string
-    description: string
-  }[]
+    name: string;
+    type: string;
+    description: string;
+    id?: string; // Added ID for consumables
+  }[];
 }
 
 // Generate quest data using OpenAI API
-const generateQuestWithOpenAI = async (description: string): Promise<AIQuestData> => {
-  const apiKey = getAPIKey()
+const generateQuestWithOpenAI = async (
+  description: string
+): Promise<AIQuestData> => {
+  const apiKey = getAPIKey();
 
   if (!apiKey) {
-    throw new Error("OpenAI API key not found")
+    throw new Error("OpenAI API key not found");
   }
 
   try {
@@ -102,10 +105,20 @@ const generateQuestWithOpenAI = async (description: string): Promise<AIQuestData
                 {
                   "name": "Item name",
                   "type": "One of: Material, Consumable, Weapon, Armor, Accessory, Rune",
-                  "description": "Brief description of the item"
+                  "description": "Brief description of the item",
+                  "id": "If the type is Consumable, include the item ID from the list below"
                 }
               ] (optional)
             }
+            
+            When generating consumable rewards, ONLY use these specific consumables with their exact IDs:
+            - item-health-potion
+            - item-mana-potion
+            - item-greater-health-potion
+            - item-greater-mana-potion
+            - item-healing-elixir
+            - item-mana-elixir
+            
             Analyze the description to determine appropriate stats to reward based on the activity.
             For example, physical activities should reward STR and VIT, mental activities should reward INT and PER, etc.
             The difficulty should be based on how challenging the task seems.
@@ -119,35 +132,37 @@ const generateQuestWithOpenAI = async (description: string): Promise<AIQuestData
         temperature: 0.7,
         max_tokens: 800,
       }),
-    })
+    });
 
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`)
+      throw new Error(`API request failed with status ${response.status}`);
     }
 
-    const data = await response.json()
-    const content = data.choices[0].message.content
+    const data = await response.json();
+    const content = data.choices[0].message.content;
 
     // Parse the JSON response
     try {
-      const questData = JSON.parse(content) as AIQuestData
-      return questData
+      const questData = JSON.parse(content) as AIQuestData;
+      return questData;
     } catch (error) {
-      console.error("Failed to parse OpenAI response:", content)
-      throw new Error("Failed to parse AI response")
+      console.error("Failed to parse OpenAI response:", content);
+      throw new Error("Failed to parse AI response");
     }
   } catch (error) {
-    console.error("Error generating quest data with OpenAI:", error)
-    throw error
+    console.error("Error generating quest data with OpenAI:", error);
+    throw error;
   }
-}
+};
 
 // Generate quest data using Gemini API
-const generateQuestWithGemini = async (description: string): Promise<AIQuestData> => {
-  const apiKey = getAPIKey()
+const generateQuestWithGemini = async (
+  description: string
+): Promise<AIQuestData> => {
+  const apiKey = getAPIKey();
 
   if (!apiKey) {
-    throw new Error("Gemini API key not found")
+    throw new Error("Gemini API key not found");
   }
 
   try {
@@ -186,10 +201,18 @@ const generateQuestWithGemini = async (description: string): Promise<AIQuestData
                     {
                       "name": "Item name",
                       "type": "One of: Material, Consumable, Weapon, Armor, Accessory, Rune",
-                      "description": "Brief description of the item"
+                      "description": "Brief description of the item",
+                      "id": "If the type is Consumable, include the item ID from the list below"
                     }
                   ] (optional)
                 }
+
+                When generating consumable rewards, ONLY use these specific consumables with their exact IDs:
+                - item-health-potion          - item-greater-health-potion
+                - item-greater-mana-potion
+                - item-healing-elixir
+                - item-mana-elixir
+                
                 Analyze the description to determine appropriate stats to reward based on the activity.
                 For example, physical activities should reward STR and VIT, mental activities should reward INT and PER, etc.
                 The difficulty should be based on how challenging the task seems.
@@ -205,46 +228,48 @@ const generateQuestWithGemini = async (description: string): Promise<AIQuestData
             maxOutputTokens: 1024,
           },
         }),
-      },
-    )
+      }
+    );
 
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`)
+      throw new Error(`API request failed with status ${response.status}`);
     }
 
-    const data = await response.json()
+    const data = await response.json();
 
     // Extract the content from Gemini's response format
-    const content = data.candidates[0].content.parts[0].text
+    const content = data.candidates[0].content.parts[0].text;
 
     // Find the JSON object in the response
-    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error("Could not find JSON in Gemini response")
+      throw new Error("Could not find JSON in Gemini response");
     }
 
     // Parse the JSON response
     try {
-      const questData = JSON.parse(jsonMatch[0]) as AIQuestData
-      return questData
+      const questData = JSON.parse(jsonMatch[0]) as AIQuestData;
+      return questData;
     } catch (error) {
-      console.error("Failed to parse Gemini response:", content)
-      throw new Error("Failed to parse AI response")
+      console.error("Failed to parse Gemini response:", content);
+      throw new Error("Failed to parse AI response");
     }
   } catch (error) {
-    console.error("Error generating quest data with Gemini:", error)
-    throw error
+    console.error("Error generating quest data with Gemini:", error);
+    throw error;
   }
-}
+};
 
 // Generate quest data using the selected AI provider
-export const generateQuestData = async (description: string): Promise<AIQuestData> => {
-  const provider = getAIProvider()
+export const generateQuestData = async (
+  description: string
+): Promise<AIQuestData> => {
+  const provider = getAIProvider();
 
   if (provider === "gemini") {
-    return generateQuestWithGemini(description)
+    return generateQuestWithGemini(description);
   } else {
     // Default to OpenAI
-    return generateQuestWithOpenAI(description)
+    return generateQuestWithOpenAI(description);
   }
-}
+};

@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 222.2 84% 4.9%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -92,8 +92,8 @@
 }
 
 .animate-solo-modal {
-  animation: soloModalExpand var(--solo-expand-duration, 0.5s) var(--solo-expand-easing, cubic-bezier(0.16, 1, 0.3, 1))
-    forwards;
+  animation: soloModalExpand var(--solo-expand-duration, 0.5s)
+    var(--solo-expand-easing, cubic-bezier(0.16, 1, 0.3, 1)) forwards;
   transform-origin: center;
 }
 

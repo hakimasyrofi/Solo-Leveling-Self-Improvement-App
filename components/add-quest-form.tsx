@@ -45,6 +45,7 @@ export function AddQuestForm() {
     title: "",
     description: "",
     difficulty: "C" as "S" | "A" | "B" | "C" | "D" | "E",
+    priority: "Medium" as "High" | "Medium" | "Low",
     expiry: "One-time", // Changed default to One-time
     expReward: 30,
     statPointsReward: 1,
@@ -149,6 +150,7 @@ export function AddQuestForm() {
       description: formData.description,
       reward: rewardString,
       difficulty: formData.difficulty,
+      priority: formData.priority,
       expiry: formData.expiry,
       expReward: Number.parseInt(formData.expReward.toString()),
       statPointsReward: formData.statPointsReward,
@@ -209,6 +211,7 @@ export function AddQuestForm() {
       title: "",
       description: "",
       difficulty: "C",
+      priority: "Medium",
       expiry: "One-time", // Reset to One-time
       expReward: 30,
       statPointsReward: 1,
@@ -325,6 +328,7 @@ export function AddQuestForm() {
         title: questData.title || prev.title,
         description: questData.description || prev.description,
         difficulty: questData.difficulty || prev.difficulty,
+        priority: questData.priority || prev.priority,
         // Don't update expiry from AI
         expReward: questData.expReward || prev.expReward,
         statPointsReward: questData.statPointsReward || prev.statPointsReward,
@@ -411,7 +415,6 @@ export function AddQuestForm() {
                   required
                 />
               </div>
-
               {/* Moved AI button here, outside of the textarea */}
               <Button
                 type="button"
@@ -431,7 +434,6 @@ export function AddQuestForm() {
                   </>
                 )}
               </Button>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="difficulty">Difficulty</Label>
@@ -455,24 +457,40 @@ export function AddQuestForm() {
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="expiry">Frequency</Label>
+                  <Label htmlFor="priority">Priority</Label>
                   <Select
-                    value={formData.expiry}
+                    value={formData.priority}
                     onValueChange={(value) =>
-                      handleSelectChange("expiry", value)
+                      handleSelectChange("priority", value)
                     }
                   >
                     <SelectTrigger className="bg-[#0a0e14] border-[#1e2a3a]">
-                      <SelectValue placeholder="Select frequency" />
+                      <SelectValue placeholder="Select priority" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#0a0e14] border-[#1e2a3a]">
-                      <SelectItem value="One-time">One-time</SelectItem>
-                      <SelectItem value="Daily">Daily</SelectItem>
-                      <SelectItem value="Weekly">Weekly</SelectItem>
-                      <SelectItem value="Monthly">Monthly</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="expiry">Frequency</Label>
+                <Select
+                  value={formData.expiry}
+                  onValueChange={(value) => handleSelectChange("expiry", value)}
+                >
+                  <SelectTrigger className="bg-[#0a0e14] border-[#1e2a3a]">
+                    <SelectValue placeholder="Select frequency" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0a0e14] border-[#1e2a3a]">
+                    <SelectItem value="One-time">One-time</SelectItem>
+                    <SelectItem value="Daily">Daily</SelectItem>
+                    <SelectItem value="Weekly">Weekly</SelectItem>
+                    <SelectItem value="Monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">

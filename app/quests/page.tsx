@@ -98,6 +98,14 @@ export default function QuestsPage() {
         const priorityOrder = { High: 3, Medium: 2, Low: 1 };
         const priorityA = priorityOrder[a.priority] || 0;
         const priorityB = priorityOrder[b.priority] || 0;
+
+        // If priorities are the same, sort by creation time (newest first)
+        if (priorityA === priorityB) {
+          const timeA = a.createdAt || 0;
+          const timeB = b.createdAt || 0;
+          return timeB - timeA;
+        }
+
         return priorityB - priorityA;
       } else {
         // Sort by time (newest first)

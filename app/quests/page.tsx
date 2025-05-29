@@ -3,7 +3,14 @@
 import type React from "react";
 
 import Link from "next/link";
-import { ChevronLeft, Search, Trash2, MoreVertical, Edit } from "lucide-react";
+import {
+  ChevronLeft,
+  Search,
+  Trash2,
+  MoreVertical,
+  Edit,
+  ArrowUpDown,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { useUser } from "@/context/user-context";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AddQuestForm } from "@/components/add-quest-form";
 import {
   Dialog,
@@ -64,35 +71,71 @@ export default function QuestsPage() {
     updateQuest,
   } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"latest" | "priority">("latest");
 
-  // Filter quests based on search term and status
-  const activeQuests = userStats.quests
-    .filter(
+  // Load sorting preference from localStorage on component mount
+  useEffect(() => {
+    const savedSortBy = localStorage.getItem("questsSortBy");
+    if (
+      savedSortBy &&
+      (savedSortBy === "latest" || savedSortBy === "priority")
+    ) {
+      setSortBy(savedSortBy);
+    }
+  }, []);
+
+  // Save sorting preference to localStorage whenever it changes
+  const handleSortChange = (value: "latest" | "priority") => {
+    setSortBy(value);
+    localStorage.setItem("questsSortBy", value);
+  };
+
+  // Sort function
+  const sortQuests = (quests: Quest[], isCompleted = false) => {
+    return quests.sort((a, b) => {
+      if (sortBy === "priority") {
+        // Sort by priority: High > Medium > Low (descending)
+        const priorityOrder = { High: 3, Medium: 2, Low: 1 };
+        const priorityA = priorityOrder[a.priority] || 0;
+        const priorityB = priorityOrder[b.priority] || 0;
+        return priorityB - priorityA;
+      } else {
+        // Sort by time (newest first)
+        if (isCompleted) {
+          // For completed quests, sort by completion time
+          const timeA = a.completedAt || 0;
+          const timeB = b.completedAt || 0;
+          return timeB - timeA;
+        } else {
+          // For active quests, sort by creation time
+          const timeA = a.createdAt || 0;
+          const timeB = b.createdAt || 0;
+          return timeB - timeA;
+        }
+      }
+    });
+  };
+
+  // Filter and sort quests based on search term and status
+  const activeQuests = sortQuests(
+    userStats.quests.filter(
       (quest) =>
         !quest.completed &&
         (quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           quest.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
-    // Sort active quests by creation time (newest first)
-    .sort((a, b) => {
-      const timeA = a.createdAt || 0; // Ensure createdAt exists or cast type
-      const timeB = b.createdAt || 0;
-      return timeB - timeA;
-    });
+    ),
+    false
+  );
 
-  const completedQuests = userStats.quests
-    .filter(
+  const completedQuests = sortQuests(
+    userStats.quests.filter(
       (quest) =>
         quest.completed &&
         (quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           quest.description.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
-    // Sort completed quests by completion time (newest first)
-    .sort((a, b) => {
-      const timeA = a.completedAt || 0;
-      const timeB = b.completedAt || 0;
-      return timeB - timeA;
-    });
+    ),
+    true
+  );
 
   const handleDeleteQuest = (questId: string) => {
     deleteQuest(questId);
@@ -112,24 +155,46 @@ export default function QuestsPage() {
           <h1 className="text-2xl font-bold tracking-tight text-[#4cc9ff]">
             Quests
           </h1>
-        </header>
-
+        </header>{" "}
         {/* Search and Filter */}
-        <div className="mb-6 relative">
-          <div className="absolute inset-0 border border-[#4cc9ff]/30 rounded-lg shadow-[0_0_15px_rgba(76,201,255,0.15)]"></div>
-          <div className="p-4 relative z-10">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8bacc1]" />
-              <Input
-                placeholder="Search quests..."
-                className="pl-9 bg-[#0a0e14] border-[#1e2a3a] focus-visible:ring-[#4cc9ff]"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+        <div className="mb-6 space-y-4">
+          <div className="relative">
+            <div className="absolute inset-0 border border-[#4cc9ff]/30 rounded-lg shadow-[0_0_15px_rgba(76,201,255,0.15)]"></div>
+            <div className="p-4 relative z-10">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8bacc1]" />
+                <Input
+                  placeholder="Search quests..."
+                  className="pl-9 bg-[#0a0e14] border-[#1e2a3a] focus-visible:ring-[#4cc9ff]"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Sorting Controls */}
+          <div className="relative">
+            <div className="absolute inset-0 border border-[#4cc9ff]/30 rounded-lg shadow-[0_0_15px_rgba(76,201,255,0.15)]"></div>
+            <div className="p-4 relative z-10">
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="h-4 w-4 text-[#8bacc1]" />
+                <span className="text-sm text-[#8bacc1]">Sort by:</span>{" "}
+                <Select value={sortBy} onValueChange={handleSortChange}>
+                  <SelectTrigger className="w-[180px] bg-[#0a0e14] border-[#1e2a3a] focus-visible:ring-[#4cc9ff]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff]">
+                    <SelectItem value="latest">Latest Created</SelectItem>
+                    <SelectItem value="priority">
+                      Priority (High to Low)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </div>
-
         {/* Quests Tabs */}
         <Tabs defaultValue="active">
           <TabsList className="grid w-full grid-cols-2 bg-[#1e2a3a] border border-[#1e2a3a]">

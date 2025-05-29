@@ -219,7 +219,6 @@ function QuestCard({
     description: quest.description,
     reward: quest.reward,
     difficulty: quest.difficulty,
-    priority: quest.priority || "Medium",
     expiry: quest.expiry,
     expReward: quest.expReward,
     statPointsReward: quest.statPointsReward,
@@ -277,29 +276,14 @@ function QuestCard({
     >
       <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
       <CardHeader className="pb-2 relative z-10">
-        {/* Action bar with difficulty, priority and menu - positioned above the title */}
+        {/* Action bar with difficulty and menu - positioned above the title */}
         <div className="flex justify-between items-center mb-2">
-          <div className="flex items-center gap-2">
-            <div
-              className={`${
-                difficultyColors[quest.difficulty]
-              } w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold`}
-            >
-              {quest.difficulty}
-            </div>
-            {quest.priority && (
-              <div
-                className={`${
-                  quest.priority === "High"
-                    ? "bg-red-500/20 text-red-400 border-red-500/30"
-                    : quest.priority === "Medium"
-                    ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
-                    : "bg-green-500/20 text-green-400 border-green-500/30"
-                } px-2 py-0.5 rounded-full text-xs font-medium border`}
-              >
-                {quest.priority}
-              </div>
-            )}
+          <div
+            className={`${
+              difficultyColors[quest.difficulty]
+            } w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold`}
+          >
+            {quest.difficulty}
           </div>
 
           {/* Dropdown menu for actions */}
@@ -432,27 +416,6 @@ function QuestCard({
                           {diff}
                         </SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="priority">Priority</Label>
-                  <Select
-                    value={editForm.priority}
-                    onValueChange={(value) =>
-                      setEditForm({
-                        ...editForm,
-                        priority: value as "High" | "Medium" | "Low",
-                      })
-                    }
-                  >
-                    <SelectTrigger className="bg-[#0a0e14] border-[#1e2a3a]">
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0a0e14] border-[#1e2a3a]">
-                      <SelectItem value="High">High</SelectItem>
-                      <SelectItem value="Medium">Medium</SelectItem>
-                      <SelectItem value="Low">Low</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

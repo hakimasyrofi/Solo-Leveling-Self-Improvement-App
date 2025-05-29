@@ -315,7 +315,10 @@ export default function Dashboard() {
                 EQUIPMENT
               </h2>
               <Link href="/equipment">
-                <Button className="bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]">
+                <Button
+                  variant="outline"
+                  className="border-[#4cc9ff]/50 hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
+                >
                   View All
                 </Button>
               </Link>
@@ -362,7 +365,10 @@ export default function Dashboard() {
                 ACTIVE QUESTS
               </h2>
               <Link href="/quests">
-                <Button className="bg-transparent border border-[#4cc9ff] hover:bg-[#4cc9ff]/10 text-[#4cc9ff]">
+                <Button
+                  variant="outline"
+                  className="border-[#4cc9ff]/50 hover:bg-[#4cc9ff]/10 text-[#4cc9ff]"
+                >
                   View All
                 </Button>
               </Link>

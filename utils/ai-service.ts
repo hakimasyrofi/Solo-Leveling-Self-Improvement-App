@@ -42,7 +42,6 @@ export interface AIQuestData {
   title: string;
   description: string;
   difficulty: "S" | "A" | "B" | "C" | "D" | "E";
-  priority?: "High" | "Medium" | "Low"; // Added priority field
   expiry?: string; // Made optional since we won't use it
   expReward: number;
   statPointsReward: number;

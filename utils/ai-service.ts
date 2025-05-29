@@ -1,5 +1,3 @@
-// Utility functions for AI API key management and quest generation
-
 // Store the API key in localStorage
 export const storeAPIKey = (provider: string, apiKey: string): void => {
   if (typeof window !== "undefined") {

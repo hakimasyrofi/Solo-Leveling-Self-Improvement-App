@@ -447,7 +447,15 @@ function QuestCard({
 
           {/* Edit Dialog */}
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff] sm:max-w-[425px]">
+            <DialogContent
+              className="bg-[#0a0e14] border-[#1e2a3a] text-[#e0f2ff] w-[90%] sm:max-w-md max-h-[90vh] overflow-y-auto animate-solo-modal"
+              style={
+                {
+                  "--solo-expand-duration": "0.5s",
+                  "--solo-expand-easing": "cubic-bezier(0.16, 1, 0.3, 1)",
+                } as React.CSSProperties
+              }
+            >
               <DialogHeader>
                 <DialogTitle className="text-[#4cc9ff]">Edit Quest</DialogTitle>
               </DialogHeader>

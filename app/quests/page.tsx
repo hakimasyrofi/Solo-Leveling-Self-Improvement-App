@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { useUser } from "@/context/user-context";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AddQuestForm } from "@/components/add-quest-form";
 import {
   Dialog,
@@ -72,6 +72,24 @@ export default function QuestsPage() {
   } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"latest" | "priority">("latest");
+
+  // Load sorting preference from localStorage on component mount
+  useEffect(() => {
+    const savedSortBy = localStorage.getItem("questsSortBy");
+    if (
+      savedSortBy &&
+      (savedSortBy === "latest" || savedSortBy === "priority")
+    ) {
+      setSortBy(savedSortBy);
+    }
+  }, []);
+
+  // Save sorting preference to localStorage whenever it changes
+  const handleSortChange = (value: "latest" | "priority") => {
+    setSortBy(value);
+    localStorage.setItem("questsSortBy", value);
+  };
+
   // Sort function
   const sortQuests = (quests: Quest[], isCompleted = false) => {
     return quests.sort((a, b) => {
@@ -161,13 +179,8 @@ export default function QuestsPage() {
             <div className="p-4 relative z-10">
               <div className="flex items-center gap-2">
                 <ArrowUpDown className="h-4 w-4 text-[#8bacc1]" />
-                <span className="text-sm text-[#8bacc1]">Sort by:</span>
-                <Select
-                  value={sortBy}
-                  onValueChange={(value: "latest" | "priority") =>
-                    setSortBy(value)
-                  }
-                >
+                <span className="text-sm text-[#8bacc1]">Sort by:</span>{" "}
+                <Select value={sortBy} onValueChange={handleSortChange}>
                   <SelectTrigger className="w-[180px] bg-[#0a0e14] border-[#1e2a3a] focus-visible:ring-[#4cc9ff]">
                     <SelectValue />
                   </SelectTrigger>

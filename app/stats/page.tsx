@@ -1,19 +1,51 @@
-"use client"
+"use client";
 
-import type React from "react"
-import Link from "next/link"
-import { Shield, Zap, Eye, Brain, Heart, ChevronLeft, Plus, Minus, HelpCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useUser } from "@/context/user-context"
-import type { UserStats } from "@/utils/storage"
+import type React from "react";
+import Link from "next/link";
+import {
+  Shield,
+  Zap,
+  Eye,
+  Brain,
+  Heart,
+  ChevronLeft,
+  Plus,
+  Minus,
+  HelpCircle,
+  Settings,
+  Key,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useUser } from "@/context/user-context";
+import type { UserStats } from "@/utils/storage";
+import { useState } from "react";
+import { APIKeyModal } from "@/components/api-key-modal";
 
 export default function StatsPage() {
-  const { userStats, allocateStatPoint, deallocateStatPoint } = useUser()
+  const { userStats, allocateStatPoint, deallocateStatPoint } = useUser();
+  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#0a0e14] text-[#e0f2ff] pb-16 md:pb-0">
+      <APIKeyModal
+        open={apiKeyModalOpen}
+        onOpenChange={setApiKeyModalOpen}
+        onKeySubmit={() => {}}
+        mode="edit"
+      />
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <header className="flex items-center mb-8">
@@ -23,7 +55,9 @@ export default function StatsPage() {
               <span className="sr-only">Back</span>
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold tracking-tight text-[#4cc9ff]">Stat Allocation</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[#4cc9ff]">
+            Stat Allocation
+          </h1>
         </header>
 
         {/* Stats Overview */}
@@ -37,8 +71,12 @@ export default function StatsPage() {
 
           <div className="p-6 relative z-10">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl uppercase tracking-wider text-[#4cc9ff]">Available Points</h2>
-              <div className="text-3xl font-bold text-[#4cc9ff]">{userStats.statPoints}</div>
+              <h2 className="text-xl uppercase tracking-wider text-[#4cc9ff]">
+                Available Points
+              </h2>
+              <div className="text-3xl font-bold text-[#4cc9ff]">
+                {userStats.statPoints}
+              </div>
             </div>
             <CardContent className="space-y-6 p-0">
               <StatAllocationRow
@@ -113,18 +151,24 @@ export default function StatsPage() {
 
         {/* Stat Effects */}
         <div>
-          <h2 className="text-xl uppercase tracking-wider text-[#4cc9ff] mb-4">Stat Effects</h2>
+          <h2 className="text-xl uppercase tracking-wider text-[#4cc9ff] mb-4">
+            Stat Effects
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative">
               <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
               <CardHeader className="pb-2 relative z-10">
-                <CardTitle className="text-base text-[#4cc9ff]">Strength Effects</CardTitle>
+                <CardTitle className="text-base text-[#4cc9ff]">
+                  Strength Effects
+                </CardTitle>
               </CardHeader>
               <CardContent className="relative z-10">
                 <ul className="space-y-2 text-sm">
                   <li className="flex justify-between">
                     <span>Base Attack Power</span>
-                    <span className="font-medium">{userStats.stats.str * 2}</span>
+                    <span className="font-medium">
+                      {userStats.stats.str * 2}
+                    </span>
                   </li>
                   <li className="flex justify-between">
                     <span>Physical Task Efficiency</span>
@@ -132,7 +176,9 @@ export default function StatsPage() {
                   </li>
                   <li className="flex justify-between">
                     <span>Carry Capacity</span>
-                    <span className="font-medium">{userStats.stats.str * 3} units</span>
+                    <span className="font-medium">
+                      {userStats.stats.str * 3} units
+                    </span>
                   </li>
                 </ul>
               </CardContent>
@@ -141,17 +187,23 @@ export default function StatsPage() {
             <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative">
               <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
               <CardHeader className="pb-2 relative z-10">
-                <CardTitle className="text-base text-[#4cc9ff]">Agility Effects</CardTitle>
+                <CardTitle className="text-base text-[#4cc9ff]">
+                  Agility Effects
+                </CardTitle>
               </CardHeader>
               <CardContent className="relative z-10">
                 <ul className="space-y-2 text-sm">
                   <li className="flex justify-between">
                     <span>Critical Hit Rate</span>
-                    <span className="font-medium">{(userStats.stats.agi * 0.5).toFixed(1)}%</span>
+                    <span className="font-medium">
+                      {(userStats.stats.agi * 0.5).toFixed(1)}%
+                    </span>
                   </li>
                   <li className="flex justify-between">
                     <span>Reaction Time</span>
-                    <span className="font-medium">-{(userStats.stats.agi * 0.4).toFixed(1)}%</span>
+                    <span className="font-medium">
+                      -{(userStats.stats.agi * 0.4).toFixed(1)}%
+                    </span>
                   </li>
                   <li className="flex justify-between">
                     <span>Movement Speed</span>
@@ -164,7 +216,9 @@ export default function StatsPage() {
             <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative">
               <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
               <CardHeader className="pb-2 relative z-10">
-                <CardTitle className="text-base text-[#4cc9ff]">Perception Effects</CardTitle>
+                <CardTitle className="text-base text-[#4cc9ff]">
+                  Perception Effects
+                </CardTitle>
               </CardHeader>
               <CardContent className="relative z-10">
                 <ul className="space-y-2 text-sm">
@@ -174,11 +228,15 @@ export default function StatsPage() {
                   </li>
                   <li className="flex justify-between">
                     <span>Detection Range</span>
-                    <span className="font-medium">{userStats.stats.per * 2} meters</span>
+                    <span className="font-medium">
+                      {userStats.stats.per * 2} meters
+                    </span>
                   </li>
                   <li className="flex justify-between">
                     <span>Minimum Damage</span>
-                    <span className="font-medium">{userStats.stats.per} points</span>
+                    <span className="font-medium">
+                      {userStats.stats.per} points
+                    </span>
                   </li>
                 </ul>
               </CardContent>
@@ -187,7 +245,9 @@ export default function StatsPage() {
             <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative">
               <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
               <CardHeader className="pb-2 relative z-10">
-                <CardTitle className="text-base text-[#4cc9ff]">Intelligence Effects</CardTitle>
+                <CardTitle className="text-base text-[#4cc9ff]">
+                  Intelligence Effects
+                </CardTitle>
               </CardHeader>
               <CardContent className="relative z-10">
                 <ul className="space-y-2 text-sm">
@@ -197,7 +257,9 @@ export default function StatsPage() {
                   </li>
                   <li className="flex justify-between">
                     <span>Skill Cooldown Reduction</span>
-                    <span className="font-medium">-{(userStats.stats.int * 0.5).toFixed(1)}%</span>
+                    <span className="font-medium">
+                      -{(userStats.stats.int * 0.5).toFixed(1)}%
+                    </span>
                   </li>
                   <li className="flex justify-between">
                     <span>Learning Efficiency</span>
@@ -210,7 +272,9 @@ export default function StatsPage() {
             <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative">
               <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
               <CardHeader className="pb-2 relative z-10">
-                <CardTitle className="text-base text-[#4cc9ff]">Vitality Effects</CardTitle>
+                <CardTitle className="text-base text-[#4cc9ff]">
+                  Vitality Effects
+                </CardTitle>
               </CardHeader>
               <CardContent className="relative z-10">
                 <ul className="space-y-2 text-sm">
@@ -220,20 +284,68 @@ export default function StatsPage() {
                   </li>
                   <li className="flex justify-between">
                     <span>Defense</span>
-                    <span className="font-medium">{userStats.stats.vit * 2}</span>
+                    <span className="font-medium">
+                      {userStats.stats.vit * 2}
+                    </span>
                   </li>
                   <li className="flex justify-between">
                     <span>Stamina Recovery</span>
-                    <span className="font-medium">+{(userStats.stats.vit * 0.5).toFixed(1)}%</span>
+                    <span className="font-medium">
+                      +{(userStats.stats.vit * 0.5).toFixed(1)}%
+                    </span>
                   </li>
                 </ul>
               </CardContent>
             </Card>
           </div>
         </div>
+
+        {/* Settings Section */}
+        <div className="mt-12 mb-8 relative">
+          <div className="absolute inset-0 border border-[#4cc9ff]/30 rounded-lg shadow-[0_0_15px_rgba(76,201,255,0.15)]"></div>
+          <div className="absolute inset-0 border-t-2 border-l-2 border-r-2 border-b-2 border-[#4cc9ff]/20 rounded-lg"></div>
+          <div className="absolute top-0 left-0 w-[20px] h-[20px] border-t-2 border-l-2 border-[#4cc9ff]"></div>
+          <div className="absolute top-0 right-0 w-[20px] h-[20px] border-t-2 border-r-2 border-[#4cc9ff]"></div>
+          <div className="absolute bottom-0 left-0 w-[20px] h-[20px] border-b-2 border-l-2 border-[#4cc9ff]"></div>
+          <div className="absolute bottom-0 right-0 w-[20px] h-[20px] border-b-2 border-r-2 border-[#4cc9ff]"></div>
+
+          <div className="p-6 relative z-10">
+            <div className="flex items-center gap-2 mb-6">
+              <Settings className="h-6 w-6 text-[#4cc9ff]" />
+              <h2 className="text-xl uppercase tracking-wider text-[#4cc9ff]">
+                System Settings
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="bg-[#0a0e14]/80 border-[#1e2a3a] relative">
+                <div className="absolute inset-0 border border-[#4cc9ff]/10"></div>
+                <CardHeader className="pb-2 relative z-10">
+                  <CardTitle className="text-base text-[#4cc9ff] flex items-center gap-2">
+                    <Key className="h-4 w-4" />
+                    AI Configuration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="relative z-10">
+                  <p className="text-sm text-[#8bacc1] mb-4">
+                    Configure your AI provider and API key to enable
+                    AI-generated quests and features.
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="w-full border-[#4cc9ff]/50 text-[#4cc9ff] hover:bg-[#4cc9ff]/10"
+                    onClick={() => setApiKeyModalOpen(true)}
+                  >
+                    Change API Key
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Update the StatAllocationRow component to make it more responsive
@@ -248,15 +360,15 @@ function StatAllocationRow({
   canIncrease,
   canDecrease,
 }: {
-  icon: React.ReactNode
-  name: keyof UserStats["stats"]
-  displayName: string
-  value: number
-  description: string
-  onIncrease: () => void
-  onDecrease: () => void
-  canIncrease: boolean
-  canDecrease: boolean
+  icon: React.ReactNode;
+  name: keyof UserStats["stats"];
+  displayName: string;
+  value: number;
+  description: string;
+  onIncrease: () => void;
+  onDecrease: () => void;
+  canIncrease: boolean;
+  canDecrease: boolean;
 }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0 mb-4 sm:mb-0">
@@ -311,5 +423,5 @@ function StatAllocationRow({
         </Button>
       </div>
     </div>
-  )
+  );
 }
